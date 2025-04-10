@@ -1,47 +1,55 @@
-import { useCollectionBalance } from "../hooks/data";
 import { AddressList } from "../components/AddressList";
 import { AddressListItem } from "../components/AddressList/AddressListItem";
 import { getChain } from "../configs/erc20/getChain";
-import { useSaleCurrency } from "../contexts/SaleCurrencyContext";
-import { nftTokenAddress, salesContractAddress } from "../configs/chains";
-import { Card, Group } from "boilerplate-design-system";
-import SaleInfo from "../components/SaleInfo";
-import ItemForSale from "../components/ItemForSale";
+import { Button, Card, Group } from "boilerplate-design-system";
 import { Address } from "viem";
 import UserInventory from "../components/UserInventory";
-import { useSaleProgress } from "../contexts/SaleProgressContext";
+import { useOpenPack } from "../hooks/useOpenPack";
+import { itemsContractAddress, packContractAddress } from "../configs/chains";
 
 const Connected = (props: { userAddress: Address; chainId: number }) => {
   const { userAddress, chainId } = props;
-
-  const { info: currencyInfo } = useSaleCurrency();
-
-  const saleProgress = useSaleProgress();
-
-  const { refetch: refetchCollectionBalance } = useCollectionBalance({
-    accountAddress: userAddress,
-  });
 
   const addressListData: Array<[string, string]> = [];
 
   if (userAddress) {
     addressListData.push(["User Address", userAddress]);
   }
-  addressListData.push(["Sales Contract", salesContractAddress]);
-  addressListData.push(["NFT Token Contract", nftTokenAddress]);
-  if (currencyInfo) {
-    addressListData.push(["Payment Currency Address", currencyInfo.address]);
-  }
+  addressListData.push(["Items Contract", itemsContractAddress]);
+  addressListData.push(["Pack Contract", packContractAddress]);
 
   const urlBase = chainId ? getChain(chainId)?.explorerUrl : undefined;
+  const {
+    data: packData,
+    isLoading,
+    isError,
+    openPack,
+  } = useOpenPack({ address: userAddress });
 
   return (
     <div className="flex flex-col gap-12">
-      <Group title="Primary Sale Info">
+      <Group title="Pack Opening">
         <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
-          <div className="p-4">
-            <SaleInfo />
-          </div>
+          <UserInventory
+            userAddress={userAddress}
+            chainId={chainId}
+            contractAddress={packContractAddress}
+            title={"Packs"}
+          />
+        </Card>
+        <Button variant="primary" onClick={() => openPack()}>
+          Open a Pack
+        </Button>
+        <p>isLoading: {isLoading || "..."}</p>
+        <p>isError: {isError || "..."}</p>
+        <div>
+          {packData.map((v, i) => {
+            return <p key={`balance-${i}`}>{v.balance}</p>;
+            // return "ha";
+          })}
+        </div>
+
+        <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
           {chainId && (
             <Card
               collapsable
@@ -64,13 +72,12 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
       </Group>
       <Group>
         <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
-          <ItemForSale
-            onPurchaseSuccess={() => {
-              refetchCollectionBalance();
-              saleProgress.refetchTotalMinted();
-            }}
+          <UserInventory
+            userAddress={userAddress}
+            chainId={chainId}
+            contractAddress={itemsContractAddress}
+            title={"Collectibles"}
           />
-          <UserInventory userAddress={userAddress} chainId={chainId} />
         </Card>
       </Group>
     </div>

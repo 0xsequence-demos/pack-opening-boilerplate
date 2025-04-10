@@ -4,19 +4,30 @@ import { Address } from "viem";
 
 export default function UserInventory(props: {
   userAddress: Address;
+  contractAddress: Address;
   chainId: number;
+  title: string;
 }) {
   const { userAddress } = props;
 
   const { data: collectionBalanceData, isLoading: collectionBalanceIsLoading } =
     useCollectionBalance({
       accountAddress: userAddress,
+      contractAddress: props.contractAddress,
     });
+
+  const count = collectionBalanceData
+    ? collectionBalanceData.reduce((pv, cv) => Number(cv.balance) + pv, 0)
+    : "";
+
+  const countUnique = collectionBalanceData
+    ? "(" + collectionBalanceData.length + " Unique)"
+    : "";
 
   return !collectionBalanceIsLoading && collectionBalanceData ? (
     <Card
       collapsable
-      title="User Inventory"
+      title={`Your ${count} ${props.title} ${countUnique}`}
       className="border-t border-white/10 rounded-none bg-transparent"
     >
       <div className="grid sm:grid-cols-2 md:grid-cols-2 gap-4">
@@ -28,14 +39,12 @@ export default function UserInventory(props: {
               <Card>
                 <div className="flex-row gap-6">
                   <div className="flex flex-col gap-6 items-center">
-                    <h3 className="flex flex-col mb-6 gap-4">
-                      {name}
-                      <br />
-                      {description} #{tokenId || "No metadata"}
-                    </h3>
-                    <div className="flex flex-row gap-6 justify-center">
-                      <Image src={image} style={{ borderRadius: "12px" }} />
-                    </div>
+                    #{tokenId || "No metadata"}: {name} (x
+                    {balanceData.balance}
+                    )
+                    <br />
+                    {description}
+                    <Image src={image} style={{ borderRadius: "12px" }} />
                   </div>
                 </div>
               </Card>

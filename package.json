@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:wrangler": "wrangler dev ./functions/api/index",
-    "create-unrevealed-tokens": "tsx scripts/create-unrevealed-tokens.ts",
+    "create-packs-csv": "tsx scripts/create-packs-csv.ts",
     "reveal-tokens": "tsx scripts/reveal-tokens.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -26,7 +26,6 @@
     "@tanstack/react-query": "^5.71.5",
     "boilerplate-design-system": "github:0xsequence-demos/boilerplate-design-system#42564000bc8653348b1fb7d25885908faa5fa355",
     "dotenv": "^16.4.7",
-    "erc-20-abi": "^1.0.1",
     "ethers": "6.13.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",

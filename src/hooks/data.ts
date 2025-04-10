@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { useMetadataClient } from "./useMetadataClient";
 import { useIndexerClient } from "./useIndexerClient";
-import { initialChainId, nftTokenAddress } from "../configs/chains";
+import { initialChainId } from "../configs/chains";
 import { Address } from "viem";
 
 const time = {
@@ -11,41 +10,22 @@ const time = {
   oneHour: 60 * 60 * 1000,
 };
 
-export const useContractInfo = (
-  chainId: number,
-  contractAddress: string | undefined,
-) => {
-  const metadataClient = useMetadataClient();
-
-  return useQuery({
-    queryKey: ["contractInfo", chainId, contractAddress],
-    queryFn: async () => {
-      const res = await metadataClient.getContractInfo({
-        chainID: String(chainId),
-        contractAddress: contractAddress || "",
-      });
-
-      return res.contractInfo;
-    },
-    retry: true,
-    staleTime: time.oneMinute * 10,
-    enabled: !!chainId && !!contractAddress,
-  });
-};
-
-export function useCollectionBalance(props: { accountAddress: Address }) {
+export function useCollectionBalance(props: {
+  accountAddress: Address;
+  contractAddress: Address;
+}) {
   const indexerClient = useIndexerClient(initialChainId);
 
   const query = useQuery({
-    queryKey: ["collectionBalance"],
+    queryKey: ["collectionBalance", props.contractAddress],
     queryFn: async () => {
       const res = await indexerClient.getTokenBalances({
         accountAddress: props.accountAddress,
-        contractAddress: nftTokenAddress,
+        contractAddress: props.contractAddress,
         includeMetadata: true,
         metadataOptions: {
           verifiedOnly: true,
-          includeContracts: [nftTokenAddress],
+          includeContracts: [props.contractAddress],
         },
       });
       return res?.balances || [];

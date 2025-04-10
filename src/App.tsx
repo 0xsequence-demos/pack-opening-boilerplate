@@ -11,7 +11,6 @@ import { Chain, Transport } from "viem";
 import { allNetworks, findNetworkConfig } from "@0xsequence/network";
 import { Toaster } from "sonner";
 import { chainIdsFromString } from "./helpers/chainIdUtils";
-import Contexts from "./Contexts";
 import { defaultChainId } from "./configs/chains";
 
 const queryClient = new QueryClient();
@@ -71,9 +70,7 @@ export default function App() {
         <SequenceConnectProvider config={kitConfig}>
           <SequenceCheckoutProvider>
             <Toaster />
-            <Contexts>
-              <Home />
-            </Contexts>
+            <Home />
           </SequenceCheckoutProvider>
         </SequenceConnectProvider>
       </QueryClientProvider>
