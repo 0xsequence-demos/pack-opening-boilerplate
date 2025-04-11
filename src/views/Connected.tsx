@@ -6,6 +6,9 @@ import { Address } from "viem";
 import UserInventory from "../components/UserInventory";
 import { useOpenPack } from "../hooks/useOpenPack";
 import { itemsContractAddress, packContractAddress } from "../configs/chains";
+import View3D from "../components/3d/View3D";
+import ItemViewer3D from "../components/3d/ItemViewer3D";
+import PickAxe3D from "../components/3d/PickAxe";
 
 const Connected = (props: { userAddress: Address; chainId: number }) => {
   const { userAddress, chainId } = props;
@@ -28,6 +31,11 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
 
   return (
     <div className="flex flex-col gap-12">
+      <View3D>
+        <ItemViewer3D>
+          <PickAxe3D />
+        </ItemViewer3D>
+      </View3D>
       <Group title="Pack Opening">
         <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
           <UserInventory
