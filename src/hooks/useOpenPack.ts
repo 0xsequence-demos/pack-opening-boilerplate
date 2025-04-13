@@ -1,6 +1,6 @@
 import { TokenBalance } from "@0xsequence/indexer";
 import { ethers } from "ethers";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   useAccount,
   useTransactionReceipt,
@@ -15,7 +15,6 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
   const { chainId } = useAccount();
   const [revealHash, setRevealHash] = useState<string>();
   const [packTokenIds, setPackTokenIds] = useState<string[]>();
-  const [frontImageUrl, setFrontImageUrl] = useState<string>();
 
   const {
     writeContract,
@@ -40,6 +39,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
         const abiInterface = new ethers.Interface(ERC1155_PACK_ABI);
         for (const log of receipt.logs) {
           const parsedLog = abiInterface.parseLog(log);
+          console.log("parsedLog: ", parsedLog);
           if (parsedLog?.name === "TransferBatch" && parsedLog?.args) {
             const { _to, _ids, _amounts } = parsedLog.args;
             if (_to === address) {
@@ -98,7 +98,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     onLogs(logs) {
       const [log] = logs;
       const hash = log.transactionHash as `0x${string}`;
-
+      console.log("hash:", hash);
       if (hash === revealHash) {
         return;
       }
@@ -108,21 +108,6 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
       refetch();
     },
   });
-
-  useEffect(() => {
-    if (frontImageUrl) return;
-
-    const tokens = collectionBalance?.filter(
-      ({ tokenID }) =>
-        tokenID && packData?.tokenIds && packData.tokenIds.includes(tokenID),
-    );
-    const hasAny = !!tokens?.length;
-    const imgUrl = hasAny ? tokens[0].tokenMetadata?.image : "";
-
-    if (imgUrl) {
-      setFrontImageUrl(imgUrl);
-    }
-  }, [collectionBalance, frontImageUrl]);
 
   const data: TokenBalance[] =
     collectionBalance
@@ -135,6 +120,8 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
           packData?.amounts[packData?.tokenIds.indexOf(card.tokenID!)],
         ).fill(card),
       ) || [];
+
+  console.log("packData:", packData);
 
   return {
     data,
