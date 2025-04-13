@@ -58,20 +58,20 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
         </ItemViewer3D>
       </View3D>
       <Group title="Pack Opening">
-        {count === 0 ? (
-          <MintPacks
-            refetchPackCollection={() => refetchPackCollectionBalance()}
-          />
-        ) : (
-          <>
-            <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
-              You own {count} pack{count === 1 ? "" : "s"}
-            </Card>
-            <Button variant="primary" onClick={() => openPack()}>
-              Open a Pack
-            </Button>
-          </>
-        )}
+        {/* {count === 0 ? ( */}
+        <MintPacks
+          refetchPackCollection={() => refetchPackCollectionBalance()}
+        />
+        {/* ) : ( */}
+        <>
+          <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
+            You own {count} pack{count === 1 ? "" : "s"}
+          </Card>
+          <Button variant="primary" onClick={() => openPack()}>
+            Open a Pack
+          </Button>
+        </>
+        {/* )} */}
         <p>isLoading: {isLoading ? "yes" : "..."}</p>
         <p>isError: {isError ? "yes" : "..."}</p>
         <div>
