@@ -13,6 +13,7 @@ dist-ssr
 *.local
 .env
 wrangler.toml
+wrangler.json
 .wrangler
 
 # Editor directories and files

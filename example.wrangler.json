@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pack-opening-boilerplate",
+  "main": "./src/worker/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "upload_source_maps": true,
+  "assets": {
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "BUILDER_PROJECT_ACCESS_KEY": "AQAAAAAAAKD0thGRWyQ1qA4y857JdoKLNs4",
+    "CHAIN_HANDLE":"arbitrum-sepolia",
+    "PACK_CONTRACT_ADDRESS":"0x5d28a4dbbbcf322d90750053806c72314a5ae4ef",
+    "PKEY":"0x0000000000000000000000000000000000000000000000000000000000000000",
+  },
+  "dev": {
+    "port": 4444
+  }
+}

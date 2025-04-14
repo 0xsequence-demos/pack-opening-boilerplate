@@ -60,15 +60,13 @@ async function main() {
   const csvValues = packRecipes.map((recipe, i) => [
     i + 1,
     tokenContractAddress,
-    recipe[0],
-    recipe[1],
-    tokenContractAddress,
-    recipe[2],
-    recipe[3],
+    `"${recipe[0]},${recipe[2]}"`,
+    `"${recipe[1]},${recipe[3]}"`,
   ]);
   const csvRows = csvValues.map((v) => v.join(","));
   const data = [
-    "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts,Item 2 Token Addr,Item 2 Token IDs,Item 2 Amounts",
+    // "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts,Item 2 Token Addr,Item 2 Token IDs,Item 2 Amounts",
+    "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts",
   ]
     .concat(csvRows)
     .join("\n");
