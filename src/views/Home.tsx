@@ -14,7 +14,7 @@ export default function Home() {
       description="Example of how to open packs using Sequence."
       docsUrl="https://docs.sequence.xyz/"
       wagmi={{ useAccount, useDisconnect, useSwitchChain }}
-      faucetUrl="https://www.alchemy.com/faucets/polygon-amoy"
+      faucetUrl="https://www.alchemy.com/faucets/arbitrum-sepolia"
       // balance={balance ? `$${balance}` : false}
     >
       {isConnected && address && chainId ? (
