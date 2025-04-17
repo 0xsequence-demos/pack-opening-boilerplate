@@ -62,7 +62,7 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
                     key={data[0]}
                     label={data[0]}
                     address={data[1]}
-                    url={urlBase ? `${urlBase}address/` : ""}
+                    url={urlBase ? `${urlBase}/address/` : ""}
                   />
                 ))}
               </AddressList>
