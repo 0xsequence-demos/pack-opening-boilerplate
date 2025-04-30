@@ -1,4 +1,3 @@
-import { Spinner } from "@0xsequence/design-system";
 import { useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { Button } from "boilerplate-design-system";
@@ -63,7 +62,7 @@ export default function MintPacks(props: {
       type="button"
       disabled={isEncoding || isMinting}
     >
-      {isEncoding || isMinting ? <Spinner /> : `Mint 3 Packs`}
+      {isEncoding || isMinting ? `Please wait...` : `Mint 3 Packs`}
     </Button>
   );
 }
