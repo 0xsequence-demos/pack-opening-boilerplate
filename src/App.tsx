@@ -1,6 +1,5 @@
 import Home from "./views/Home";
 import {
-  getDefaultChains,
   SequenceConnect,
   ConnectConfig,
   createConfig,
@@ -10,6 +9,7 @@ import { SequenceCheckoutProvider } from "@0xsequence/checkout";
 import { Toaster } from "sonner";
 import { chainIdsFromString } from "./helpers/chainIdUtils";
 import { defaultChainId } from "./configs/chains";
+import { SequenceHooksProvider } from "@0xsequence/hooks";
 
 const queryClient = new QueryClient();
 
@@ -21,7 +21,7 @@ export default function App() {
   const appleRedirectURI = window.location.origin + window.location.pathname;
   const walletConnectId = import.meta.env.VITE_WALLET_CONNECT_ID;
 
-  const chainIds = chainIdsFromString(import.meta.env.VITE_CHAINS)
+  const chainIds = chainIdsFromString(import.meta.env.VITE_CHAINS);
   const connectConfig: ConnectConfig = {
     projectAccessKey,
     defaultTheme: "dark",
@@ -41,7 +41,7 @@ export default function App() {
     chainIds,
     defaultChainId,
     waasConfigKey,
-    appName: "Sequnce Pack Opening Boilerplate",
+    appName: "Sequence Pack Opening Boilerplate",
     enableConfirmationModal:
       localStorage.getItem("confirmationEnabled") === "true",
     google: {
@@ -56,13 +56,17 @@ export default function App() {
     },
   });
 
+  console.log(kitConfig);
+
   return (
     <QueryClientProvider client={queryClient}>
       <SequenceConnect config={kitConfig}>
-        <SequenceCheckoutProvider>
-          <Toaster />
-          <Home />
-        </SequenceCheckoutProvider>
+        <SequenceHooksProvider config={connectConfig}>
+          <SequenceCheckoutProvider>
+            <Toaster />
+            <Home />
+          </SequenceCheckoutProvider>
+        </SequenceHooksProvider>
       </SequenceConnect>
     </QueryClientProvider>
   );
