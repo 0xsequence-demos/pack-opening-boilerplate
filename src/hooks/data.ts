@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { useIndexerClient } from "./useIndexerClient";
-import { initialChainId } from "../configs/chains";
 import { Address } from "viem";
+import { useIndexerClient } from "@0xsequence/hooks";
+import { defaultChainId } from "../configs/chains";
 
 const time = {
   oneSecond: 1 * 1000,
@@ -14,7 +14,7 @@ export function useCollectionBalance(props: {
   accountAddress: Address;
   contractAddress: Address;
 }) {
-  const indexerClient = useIndexerClient(initialChainId);
+  const indexerClient = useIndexerClient(defaultChainId!);
 
   const query = useQuery({
     queryKey: ["collectionBalance", props.contractAddress],
