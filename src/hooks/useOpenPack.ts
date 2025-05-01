@@ -1,4 +1,3 @@
-import { TokenBalance } from "@0xsequence/indexer";
 import { ethers } from "ethers";
 import { useState } from "react";
 import {
@@ -7,9 +6,8 @@ import {
   useWatchContractEvent,
   useWriteContract,
 } from "wagmi";
-import { useCollectionBalance } from "./data";
 import { ERC1155_PACK_ABI } from "../abi/pack/ERC1155Pack";
-import { itemsContractAddress, packContractAddress } from "../configs/chains";
+import { packContractAddress } from "../configs/chains";
 
 export function useOpenPack({ address }: { address: `0x${string}` }) {
   const { chainId } = useAccount();
@@ -29,7 +27,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
   });
   const {
     isLoading: isReceiptLoading,
-    data: packData,
+    data,
     isError: isReceiptError,
   } = useTransactionReceipt({
     chainId,
@@ -61,20 +59,9 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     },
   });
 
-  const {
-    refetch,
-    data: collectionBalance,
-    isError: isBalanceError,
-    isLoading: isBalanceLoading,
-  } = useCollectionBalance({
-    accountAddress: address!,
-    contractAddress: itemsContractAddress,
-  });
+  const isLoading = isCommitLoading || (revealHash && isReceiptLoading);
 
-  const isLoading =
-    isCommitLoading || (revealHash && isReceiptLoading) || isBalanceLoading;
-
-  const isError = isCommitError || isReceiptError || isBalanceError;
+  const isError = isCommitError || isReceiptError;
 
   const openPack = () => {
     writeContract({
@@ -104,24 +91,10 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
       }
 
       setRevealHash(log.transactionHash as `0x${string}`);
-      console.log("Reveal event received. Fetching collection metadata");
-      refetch();
     },
   });
 
-  const data: TokenBalance[] =
-    collectionBalance
-      ?.filter(
-        ({ tokenID }) =>
-          tokenID && packData?.tokenIds && packData.tokenIds.includes(tokenID),
-      )
-      .flatMap((card) =>
-        Array(
-          packData?.amounts[packData?.tokenIds.indexOf(card.tokenID!)],
-        ).fill(card),
-      ) || [];
-
-  console.log("packData:", packData);
+  console.log("packData:", data);
 
   return {
     data,

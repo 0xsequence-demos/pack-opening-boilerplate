@@ -20,6 +20,7 @@
     "0xsequence": "^2.3.10",
     "@0xsequence/auth": "^2.3.10",
     "@0xsequence/checkout": "^5.2.1",
+    "@0xsequence/hooks": "^5.2.1",
     "@0xsequence/connect": "^5.2.1",
     "@0xsequence/indexer": "^2.3.10",
     "@0xsequence/metadata": "2.3.10",
