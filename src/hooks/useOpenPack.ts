@@ -13,6 +13,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
   const { chainId } = useAccount();
   const [revealHash, setRevealHash] = useState<string>();
   const [packTokenIds, setPackTokenIds] = useState<string[]>();
+  const [isWaitingForReveal, setIsWaitingForReveal] = useState(false);
 
   const {
     writeContract,
@@ -20,8 +21,10 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     isError: isCommitError,
   } = useWriteContract({
     mutation: {
-      onSuccess: () =>
-        console.log("Commit successful. Reveal event is expected"),
+      onSuccess: () => {
+        console.log("Commit successful. Reveal event is expected")
+        setIsWaitingForReveal(true);
+      },
       onError: (error) => console.error("Error committing pack", error),
     },
   });
@@ -89,8 +92,8 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
       if (hash === revealHash) {
         return;
       }
-
-      setRevealHash(log.transactionHash as `0x${string}`);
+      setRevealHash(hash);
+      setIsWaitingForReveal(false);
     },
   });
 
@@ -100,6 +103,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     data,
     openPack,
     isLoading,
+    isWaitingForReveal,
     isError,
   };
 }

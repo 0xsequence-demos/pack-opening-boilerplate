@@ -32,6 +32,7 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
   const {
     data: packData,
     isLoading,
+    isWaitingForReveal,
     isError,
     openPack,
   } = useOpenPack({ address: userAddress });
@@ -89,17 +90,43 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
       <View3D>
         <ItemViewer3D>
           {packChest && Number(packChest.balance) > 0 && packModelUri ? (
-            <GenericItem gltfUrl={packModelUri} />
+            <GenericItem
+              gltfUrl={packModelUri}
+              position={[0, 0, -2]}
+              scale={1}
+              shaking={isLoading || isWaitingForReveal}
+            />
           ) : null}
           {tokenMetadatas &&
             packTokens
               .map((id, i) => {
                 const v = tokenMetadatas.find((v) => v.tokenId === id);
+
+                //hexagonal spiral algorithm
+                let x = 0;
+                let y = 0;
+
+                if (i > 0) {
+                  const layer = Math.round(Math.sqrt(i / 3.0));
+
+                  const firstIdxInLayer = 3 * layer * (layer - 1) + 1;
+                  const side = (i - firstIdxInLayer) / layer;
+                  const idx = (i - firstIdxInLayer) % layer;
+                  x =
+                    layer * Math.cos(((side - 1) * Math.PI) / 3) +
+                    (idx + 1) * Math.cos(((side + 1) * Math.PI) / 3);
+                  y =
+                    -layer * Math.sin(((side - 1) * Math.PI) / 3) -
+                    (idx + 1) * Math.sin(((side + 1) * Math.PI) / 3);
+                }
+
                 return (
                   v?.animation_url && (
                     <GenericItem
                       key={`${v.tokenId}-${i}`}
                       gltfUrl={v.animation_url}
+                      position={[x, y, 2]}
+                      scale={0.25}
                     />
                   )
                 );
@@ -123,9 +150,10 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
           </>
         )}
         <p>isLoading: {isLoading ? "yes" : "..."}</p>
+        <p>isWaitingForReveal: {isWaitingForReveal ? "yes" : "..."}</p>
         <div>
           {packTokens.map((id, i) => (
-            <p key={`token-${id}-${i}`}>id</p>
+            <p key={`token-${id}-${i}`}>{id}</p>
           ))}
         </div>
         <p>isError: {isError ? "yes" : "..."}</p>
