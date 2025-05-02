@@ -1,6 +1,5 @@
 import { AddressList } from "../components/AddressList";
 import { AddressListItem } from "../components/AddressList/AddressListItem";
-import { getChain } from "../configs/erc20/getChain";
 import { Button, Card, Group } from "boilerplate-design-system";
 import { Address } from "viem";
 import UserInventory from "../components/UserInventory";
@@ -15,7 +14,8 @@ import ItemViewer3D from "../components/3d/ItemViewer3D";
 import GenericItem from "../components/3d/GenericItem";
 import { useCollectionBalance } from "../hooks/data";
 import MintPacks from "../components/MintPacks";
-import { useGetTokenMetadata } from "@0xsequence/hooks";
+import { useConfig, useGetTokenMetadata } from "@0xsequence/hooks";
+import { allNetworks } from "@0xsequence/network";
 
 const Connected = (props: { userAddress: Address; chainId: number }) => {
   const { userAddress, chainId } = props;
@@ -28,7 +28,11 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
   addressListData.push(["Items Contract", itemsContractAddress]);
   addressListData.push(["Pack Contract", packContractAddress]);
 
-  const urlBase = chainId ? getChain(chainId)?.explorerUrl : undefined;
+  const urlBase = chainId
+    ? allNetworks.find((chain) => chain.chainId === chainId)?.blockExplorer
+        ?.rootUrl
+    : undefined;
+
   const {
     data: packData,
     isLoading,
@@ -84,6 +88,9 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
       }
     }
   }
+
+  const test = useConfig();
+  console.log(test);
 
   return (
     <div className="flex flex-col gap-12">
