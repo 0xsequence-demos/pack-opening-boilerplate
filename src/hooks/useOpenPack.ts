@@ -40,7 +40,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
         const abiInterface = new ethers.Interface(ERC1155_PACK_ABI);
         for (const log of receipt.logs) {
           const parsedLog = abiInterface.parseLog(log);
-          console.log("parsedLog: ", parsedLog);
+          console.log("parsedLog", parsedLog);
           if (parsedLog?.name === "TransferBatch" && parsedLog?.args) {
             const { _to, _ids, _amounts } = parsedLog.args;
             if (_to === address) {
@@ -62,7 +62,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     },
   });
 
-  const isLoading = isCommitLoading || (revealHash && isReceiptLoading);
+  const isLoading = isCommitLoading; // || (revealHash && isReceiptLoading);
 
   const isError = isCommitError || isReceiptError;
 
@@ -101,7 +101,7 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     packData: !isLoading && !isWaitingForReveal ? data : null,
     openPack,
     isLoading,
-    isWaitingForReveal,
+    isWaitingForReveal: isWaitingForReveal || (revealHash && isReceiptLoading),
     isError,
   };
 }

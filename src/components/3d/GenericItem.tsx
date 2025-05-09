@@ -8,10 +8,13 @@ const tempVec3 = new Vector3();
 
 export default function GenericItem(props: {
   gltfUrl: string;
-  position: [number, number, number];
+  x: number;
+  y: number;
+  z: number;
   scale: number;
 }) {
-  const { nodes } = useGLTF(props.gltfUrl);
+  const { x, y, z, gltfUrl, scale } = props;
+  const { nodes } = useGLTF(gltfUrl);
   const bbox = new Box3();
   if (nodes["Scene"]) {
     bbox.setFromObject(nodes["Scene"]);
@@ -20,7 +23,7 @@ export default function GenericItem(props: {
   const largestSize = Math.max(tempVec3.x, Math.max(tempVec3.y, tempVec3.z));
   const size = new Vector3(5, 5, 5).divideScalar(largestSize);
 
-  const scale = useSpringValue(0, {
+  const scaleAnim = useSpringValue(0, {
     config: {
       mass: 0.25,
       friction: 5,
@@ -29,33 +32,76 @@ export default function GenericItem(props: {
   });
 
   useEffect(() => {
-    scale.start(1);
+    scaleAnim.start(1);
   });
+
+  const xAnim = useSpringValue(0, {
+    config: {
+      mass: 0.25,
+      friction: 20,
+      tension: 100,
+    },
+  });
+
+  useEffect(() => {
+    xAnim.start(x);
+  }, [x]);
+
+  const yAnim = useSpringValue(0, {
+    config: {
+      mass: 0.25,
+      friction: 20,
+      tension: 100,
+    },
+  });
+
+  useEffect(() => {
+    yAnim.start(y);
+  }, [y]);
+
+  const zAnim = useSpringValue(0, {
+    config: {
+      mass: 0.25,
+      friction: 20,
+      tension: 100,
+    },
+  });
+
+  useEffect(() => {
+    zAnim.start(z);
+  }, [z]);
 
   bbox.getCenter(tempVec3).multiply(size);
   const center = new Vector3(0, 0, 0).sub(tempVec3);
-  const myGroup = useRef<Group | null>(null);
+  const myGroupOuter = useRef<Group | null>(null);
+  const myGroupInner = useRef<Group | null>(null);
 
   useFrame(({ clock }) => {
-    if (!myGroup.current) {
+    if (!myGroupInner.current) {
+      return;
+    }
+    if (!myGroupOuter.current) {
       return;
     }
     const now = clock.getElapsedTime();
     const ry = Math.sin(now) * 0.2;
     const rx = Math.sin(now * 4) * 0.05;
-    myGroup.current.rotation.y = ry;
-    myGroup.current.rotation.x = rx;
-  });
+    myGroupInner.current.rotation.y = ry;
+    myGroupInner.current.rotation.x = rx;
 
-  const s = props.scale;
+    myGroupOuter.current.position.x = xAnim.get();
+    myGroupOuter.current.position.y = yAnim.get();
+    myGroupOuter.current.position.z = zAnim.get();
+  });
 
   return (
     <animated.group
+      position={[0, 0, 0]}
       rotation={[0.25, 0.65, 0]}
-      position={props.position}
-      scale={s}
+      scale={scale}
+      ref={myGroupOuter}
     >
-      <animated.group ref={myGroup} scale={scale}>
+      <animated.group ref={myGroupInner} scale={scaleAnim}>
         <Clone scale={size} position={center} object={nodes["Scene"]} />
       </animated.group>
     </animated.group>

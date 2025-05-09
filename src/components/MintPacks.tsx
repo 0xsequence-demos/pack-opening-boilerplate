@@ -21,7 +21,6 @@ export default function MintPacks(props: {
   const [isMinting, setIsMinting] = useState(false);
 
   const requestMint = () => {
-    console.log("WWEW");
     if (isMinting) {
       return;
     }
@@ -56,7 +55,7 @@ export default function MintPacks(props: {
 
   return (
     <Button
-      variant="secondary"
+      variant="primary"
       className="purchase"
       onClick={requestMint}
       type="button"

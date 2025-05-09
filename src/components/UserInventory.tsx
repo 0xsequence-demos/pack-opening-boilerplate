@@ -1,37 +1,31 @@
-import { useCollectionBalance } from "../hooks/data";
+import { TokenBalance } from "@0xsequence/indexer";
 import { Card, Image } from "boilerplate-design-system";
-import { Address } from "viem";
 
 export default function UserInventory(props: {
-  userAddress: Address;
-  contractAddress: Address;
-  chainId: number;
   title: string;
+  itemsCollectionBalanceData: TokenBalance[] | undefined;
+  itemCollectionBalanceIsLoading: boolean;
+  refetchItemsCollectionBalance: () => void;
 }) {
-  const { userAddress } = props;
+  const { title, itemCollectionBalanceIsLoading, itemsCollectionBalanceData } =
+    props;
 
-  const { data: collectionBalanceData, isLoading: collectionBalanceIsLoading } =
-    useCollectionBalance({
-      accountAddress: userAddress,
-      contractAddress: props.contractAddress,
-    });
-
-  const count = collectionBalanceData
-    ? collectionBalanceData.reduce((pv, cv) => Number(cv.balance) + pv, 0)
+  const count = itemsCollectionBalanceData
+    ? itemsCollectionBalanceData.reduce((pv, cv) => Number(cv.balance) + pv, 0)
     : "";
 
-  const countUnique = collectionBalanceData
-    ? "(" + collectionBalanceData.length + " Unique)"
+  const countUnique = itemsCollectionBalanceData
+    ? "(" + itemsCollectionBalanceData.length + " Unique)"
     : "";
 
-  return !collectionBalanceIsLoading && collectionBalanceData ? (
+  return !itemCollectionBalanceIsLoading && itemsCollectionBalanceData ? (
     <Card
       collapsable
-      title={`Your ${count} ${props.title} ${countUnique}`}
+      title={`Your ${count} ${title} ${countUnique}`}
       className="border-t border-white/10 rounded-none bg-transparent"
     >
       <div className="grid sm:grid-cols-2 md:grid-cols-2 gap-4">
-        {collectionBalanceData?.map((balanceData) => {
+        {itemsCollectionBalanceData?.map((balanceData) => {
           const { name, description, image, tokenId } =
             balanceData?.tokenMetadata ?? {};
           return (
