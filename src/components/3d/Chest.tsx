@@ -11,7 +11,9 @@ const tempVec3 = new Vector3();
 
 export default function Chest(props: {
   gltfUrl: string;
-  position: [number, number, number];
+  x: number;
+  y: number;
+  z: number;
   scale: number;
   shaking?: boolean;
   busy?: boolean;
@@ -20,8 +22,20 @@ export default function Chest(props: {
   red?: boolean;
   innerLight?: boolean;
 }) {
-  const { nodes } = useGLTF(props.gltfUrl);
-  const { shaking, busy, open, underlit, red, innerLight } = props;
+  const {
+    shaking,
+    busy,
+    open,
+    underlit,
+    red,
+    innerLight,
+    x,
+    y,
+    z,
+    gltfUrl,
+    scale,
+  } = props;
+  const { nodes } = useGLTF(gltfUrl);
   const bbox = new Box3();
   if (nodes["Scene"]) {
     bbox.setFromObject(nodes["Scene"]);
@@ -30,7 +44,7 @@ export default function Chest(props: {
   const largestSize = Math.max(tempVec3.x, Math.max(tempVec3.y, tempVec3.z));
   const size = new Vector3(5, 5, 5).divideScalar(largestSize);
 
-  const scale = useSpringValue(0, {
+  const scaleAnim = useSpringValue(0, {
     config: {
       mass: 0.25,
       friction: 5,
@@ -39,7 +53,7 @@ export default function Chest(props: {
   });
 
   useEffect(() => {
-    scale.start(1);
+    scaleAnim.start(1);
   });
 
   const lidOpen = useSpringValue(0, {
@@ -53,38 +67,51 @@ export default function Chest(props: {
     lidOpen.start(open ? 2 : 0);
   }, [open]);
 
+  const xAnim = useSpringValue(10, {
+    config: {
+      mass: 0.25,
+      friction: 20,
+      tension: 100,
+    },
+  });
+
+  useEffect(() => {
+    xAnim.start(x);
+  });
+
   bbox.getCenter(tempVec3).multiply(size);
   const center = new Vector3(0, 0, 0).sub(tempVec3);
-  const myGroup = useRef<Group | null>(null);
+  const myGroupOuter = useRef<Group | null>(null);
+  const myGroupInner = useRef<Group | null>(null);
 
   const ringRef = useRef<Object3D>(null);
   const ringMatRef = useRef<IMyShaderMaterial>(null);
 
   useFrame(({ clock }) => {
-    if (!myGroup.current) {
+    if (!myGroupInner.current) {
       return;
     }
     const now = clock.getElapsedTime();
     if (ringMatRef.current) {
-      ringMatRef.current.uTime = now;
+      ringMatRef.current.uTime = now * 0.75;
     }
     if (ringRef.current) {
-      ringRef.current.rotation.z = now * 7;
+      ringRef.current.rotation.z = now * 4;
     }
     let ry = Math.sin(now) * 0.2;
     let rx = Math.sin(now * 4) * 0.05;
     let lidJiggle = 0;
     if (shaking) {
-      rx += Math.sin(now * 36 + Math.sin(now * 5) * 3) * 0.1;
-      ry += Math.cos(now * 21 + Math.sin(now) * 2) * 0.05;
+      rx += Math.sin(now * 36 + Math.sin(now * 4) * 3) * 0.05;
+      ry += Math.cos(now * 21 + Math.sin(now) * 1.5) * 0.025;
       const then = now - 0.05;
-      lidJiggle += Math.sin(then * 36 + Math.sin(then * 5) * 3) * 0.01 - 0.0035;
+      lidJiggle += Math.sin(then * 36 + Math.sin(then * 4) * 3) * 0.01 - 0.0035;
     }
-    myGroup.current.rotation.y = ry;
-    myGroup.current.rotation.x = rx;
+    myGroupInner.current.rotation.y = ry;
+    myGroupInner.current.rotation.x = rx;
     let lid: Object3D | undefined;
     try {
-      lid = myGroup.current.children[0].children[0].children[0];
+      lid = myGroupInner.current.children[0].children[0].children[0];
     } catch (_e) {
       void _e;
       //
@@ -92,17 +119,21 @@ export default function Chest(props: {
     if (lid) {
       lid.rotation.x = lidOpen.get() - lidJiggle;
     }
+    if (myGroupOuter.current) {
+      myGroupOuter.current.position.x = xAnim.get();
+    }
   });
 
-  const s = props.scale;
+  const s = scale;
 
   return (
     <animated.group
+      ref={myGroupOuter}
+      position={[x, y, z]}
       rotation={[0.25, 0.65, 0]}
-      position={props.position}
       scale={s}
     >
-      <animated.group ref={myGroup} scale={scale}>
+      <animated.group ref={myGroupInner} scale={scaleAnim}>
         <Clone scale={size} position={center} object={nodes["Scene"]} />
         {busy && (
           <>

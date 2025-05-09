@@ -56,8 +56,6 @@ export default function App() {
     },
   });
 
-  console.log(kitConfig);
-
   return (
     <QueryClientProvider client={queryClient}>
       <SequenceConnect config={kitConfig}>
