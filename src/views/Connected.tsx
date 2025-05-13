@@ -123,6 +123,7 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
               return (
                 <OpenableChest
                   key={j}
+                  id={j}
                   x={i * 10 - 10}
                   y={0}
                   z={-2}
