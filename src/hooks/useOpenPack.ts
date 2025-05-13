@@ -12,14 +12,9 @@ import { packContractAddress } from "../configs/chains";
 export function useOpenPack({ address }: { address: `0x${string}` }) {
   const { chainId } = useAccount();
   const [revealHash, setRevealHash] = useState<string>();
-  const [packTokenIds, setPackTokenIds] = useState<string[]>();
   const [isWaitingForReveal, setIsWaitingForReveal] = useState(false);
 
-  const {
-    writeContract,
-    isPending: isCommitLoading,
-    isError: isCommitError,
-  } = useWriteContract({
+  const commit = useWriteContract({
     mutation: {
       onSuccess: () => {
         console.log("Commit successful. Reveal event is expected");
@@ -28,19 +23,16 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
       onError: (error) => console.error("Error committing pack", error),
     },
   });
-  const {
-    isLoading: isReceiptLoading,
-    data,
-    isError: isReceiptError,
-  } = useTransactionReceipt({
+
+  const receipt = useTransactionReceipt({
     chainId,
     hash: revealHash! as `0x${string}`,
     query: {
+      enabled: !!revealHash,
       select: (receipt) => {
         const abiInterface = new ethers.Interface(ERC1155_PACK_ABI);
         for (const log of receipt.logs) {
           const parsedLog = abiInterface.parseLog(log);
-          console.log("parsedLog", parsedLog);
           if (parsedLog?.name === "TransferBatch" && parsedLog?.args) {
             const { _to, _ids, _amounts } = parsedLog.args;
             if (_to === address) {
@@ -50,9 +42,6 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
               const amounts: number[] = _amounts.map((amount: bigint) =>
                 Number(amount),
               );
-
-              if (!packTokenIds) setPackTokenIds(tokenIds);
-
               return { tokenIds, amounts };
             }
           }
@@ -62,33 +51,19 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     },
   });
 
-  const isLoading = isCommitLoading; // || (revealHash && isReceiptLoading);
-
-  const isError = isCommitError || isReceiptError;
-
-  const openPack = () => {
-    writeContract({
-      chainId,
-      address: packContractAddress,
-      abi: ERC1155_PACK_ABI,
-      functionName: "commit",
-      args: [],
-    });
-  };
-
   useWatchContractEvent({
     chainId,
     address: packContractAddress,
     abi: ERC1155_PACK_ABI,
     eventName: "Reveal(address user)",
     args: { user: address },
+    enabled: !revealHash && isWaitingForReveal,
     onError() {
       setRevealHash(undefined);
     },
     onLogs(logs) {
       const [log] = logs;
       const hash = log.transactionHash as `0x${string}`;
-      console.log("hash:", hash);
       if (hash === revealHash) {
         return;
       }
@@ -97,11 +72,25 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     },
   });
 
+  const openPack = () => {
+    commit.writeContract({
+      chainId,
+      address: packContractAddress,
+      abi: ERC1155_PACK_ABI,
+      functionName: "commit",
+      args: [],
+    });
+  };
+
+  const isLoading = commit.isPending; // || (revealHash && isReceiptLoading);
+
+  const isError = commit.isError || receipt.isError;
+
   return {
-    packData: !isLoading && !isWaitingForReveal ? data : null,
+    packData: !isLoading && !isWaitingForReveal ? receipt?.data : null,
     openPack,
     isLoading,
-    isWaitingForReveal: isWaitingForReveal || (revealHash && isReceiptLoading),
+    isWaitingForReveal: isWaitingForReveal || (revealHash && receipt.isLoading),
     isError,
   };
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { useOpenPack } from "../../hooks/useOpenPack";
 import Chest from "./Chest";
 import GenericItem from "./GenericItem";
@@ -6,7 +6,9 @@ import { TokenMetadata } from "@0xsequence/indexer";
 import { animationStates } from "../../views/chestAnimationStates";
 import { chestStates } from "../../views/chestStates";
 
-export default function OpenableChest(props: {
+export default memo(OpenableChest);
+
+export function OpenableChest(props: {
   x: number;
   y: number;
   z: number;
@@ -37,6 +39,7 @@ export default function OpenableChest(props: {
     useOpenPack({ address: userAddress });
 
   useEffect(() => {
+    console.log("state change");
     if (isLoading || isWaitingForReveal) {
       setChestState("busy");
     } else if (isError) {
@@ -49,12 +52,14 @@ export default function OpenableChest(props: {
   }, [isLoading, isWaitingForReveal, isError, packData]);
 
   useEffect(() => {
+    console.log("change in packData");
     if (packData) {
       refetchPackCollectionBalance();
     }
   }, [packData]);
 
   useEffect(() => {
+    console.log("Open Initiated");
     if (openInitiated) {
       openPack();
     }
