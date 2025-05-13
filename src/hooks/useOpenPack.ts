@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   useAccount,
   useTransactionReceipt,
@@ -8,65 +8,47 @@ import {
 } from "wagmi";
 import { ERC1155_PACK_ABI } from "../abi/pack/ERC1155Pack";
 import { packContractAddress } from "../configs/chains";
+import { packOpeningStates } from "../views/packOpeningStates";
 
-export function useOpenPack({ address }: { address: `0x${string}` }) {
+export function useOpenPack({
+  id,
+  address,
+}: {
+  id: number;
+  address: `0x${string}`;
+}) {
+  const [packState, setPackState] =
+    useState<(typeof packOpeningStates)[number]>("idle");
   const { chainId } = useAccount();
   const [revealHash, setRevealHash] = useState<string>();
-  const [packTokenIds, setPackTokenIds] = useState<string[]>();
-  const [isWaitingForReveal, setIsWaitingForReveal] = useState(false);
 
-  const {
-    writeContract,
-    isPending: isCommitLoading,
-    isError: isCommitError,
-  } = useWriteContract({
+  const myLog = useCallback(
+    (msg: string) => {
+      console.log(`[${id}]`, msg);
+    },
+    [id],
+  );
+
+  useEffect(() => {
+    myLog(`((${packState}))`);
+  }, [packState]);
+
+  // commit
+  const { writeContract, isError: isCommitError } = useWriteContract({
     mutation: {
       onSuccess: () => {
-        console.log("Commit successful. Reveal event is expected");
-        setIsWaitingForReveal(true);
+        myLog("Commit successful. Reveal event is expected");
+        setPackState("revealing");
       },
-      onError: (error) => console.error("Error committing pack", error),
-    },
-  });
-  const {
-    isLoading: isReceiptLoading,
-    data,
-    isError: isReceiptError,
-  } = useTransactionReceipt({
-    chainId,
-    hash: revealHash! as `0x${string}`,
-    query: {
-      select: (receipt) => {
-        const abiInterface = new ethers.Interface(ERC1155_PACK_ABI);
-        for (const log of receipt.logs) {
-          const parsedLog = abiInterface.parseLog(log);
-          console.log("parsedLog", parsedLog);
-          if (parsedLog?.name === "TransferBatch" && parsedLog?.args) {
-            const { _to, _ids, _amounts } = parsedLog.args;
-            if (_to === address) {
-              const tokenIds: string[] = _ids.map((id: bigint) =>
-                id.toString(),
-              );
-              const amounts: number[] = _amounts.map((amount: bigint) =>
-                Number(amount),
-              );
-
-              if (!packTokenIds) setPackTokenIds(tokenIds);
-
-              return { tokenIds, amounts };
-            }
-          }
-        }
-        return { tokenIds: [], amounts: [] };
+      onError: (error) => {
+        console.error("Error committing pack", error);
+        setPackState("fail");
       },
     },
   });
-
-  const isLoading = isCommitLoading; // || (revealHash && isReceiptLoading);
-
-  const isError = isCommitError || isReceiptError;
 
   const openPack = () => {
+    setPackState("commiting");
     writeContract({
       chainId,
       address: packContractAddress,
@@ -76,32 +58,93 @@ export function useOpenPack({ address }: { address: `0x${string}` }) {
     });
   };
 
+  //reveal
+  const { data: receipt, isError: isReceiptError } = useTransactionReceipt({
+    chainId,
+    scopeKey: `revealReceipt${id}`,
+    hash: revealHash! as `0x${string}`,
+    query: { enabled: !!revealHash },
+  });
+
+  const [packData, setPackData] = useState<
+    | {
+        tokenIds: string[];
+        amounts: number[];
+      }
+    | undefined
+  >();
+
+  useEffect(() => {
+    if (!receipt) {
+      return;
+    }
+    myLog("found transaction receipt");
+    const abiInterface = new ethers.Interface(ERC1155_PACK_ABI);
+    for (let i = 0; i < receipt.logs.length; i++) {
+      const log = receipt.logs[i];
+      const parsedLog = abiInterface.parseLog(log);
+      if (parsedLog?.name === "TransferBatch" && parsedLog?.args) {
+        myLog(`- log ${i} has some items`);
+        const { _to, _ids, _amounts } = parsedLog.args;
+        if (_to === address) {
+          myLog("  - that belong to me");
+
+          const tokenIds: string[] = _ids.map((id: bigint) => id.toString());
+          const amounts: number[] = _amounts.map((amount: bigint) =>
+            Number(amount),
+          );
+
+          const result = { tokenIds, amounts };
+          setPackData(result);
+          myLog(JSON.stringify(result));
+          setPackState("success");
+        } else {
+          myLog("  - that belong to someone else");
+        }
+      } else {
+        myLog(`- log ${i} does not have items`);
+      }
+    }
+    setPackData({ tokenIds: [], amounts: [] });
+  }, [receipt]);
+
+  const isError = isCommitError || isReceiptError;
+
+  useEffect(() => {
+    if (isError) {
+      setPackState("fail");
+    }
+  }, [isError]);
+
   useWatchContractEvent({
     chainId,
     address: packContractAddress,
     abi: ERC1155_PACK_ABI,
     eventName: "Reveal(address user)",
     args: { user: address },
+    enabled: packState === "revealing" || packState === "receiving", //this seems not to disable
     onError() {
       setRevealHash(undefined);
     },
     onLogs(logs) {
-      const [log] = logs;
-      const hash = log.transactionHash as `0x${string}`;
-      console.log("hash:", hash);
-      if (hash === revealHash) {
+      if (revealHash) {
         return;
       }
+      const [log] = logs;
+      const hash = log.transactionHash as `0x${string}`;
+      const alreadyHadOne = !!revealHash;
+      myLog(`reveal hash found: ${hash}`);
+      if (alreadyHadOne) {
+        myLog(`even though I already had one`);
+      }
+      setPackState("receiving");
       setRevealHash(hash);
-      setIsWaitingForReveal(false);
     },
   });
 
   return {
-    packData: !isLoading && !isWaitingForReveal ? data : null,
+    packData: packState === "success" ? packData : null,
     openPack,
-    isLoading,
-    isWaitingForReveal: isWaitingForReveal || (revealHash && isReceiptLoading),
-    isError,
+    packState,
   };
 }

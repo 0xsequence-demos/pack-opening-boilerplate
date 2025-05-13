@@ -7,6 +7,7 @@ import { animationStates } from "../../views/chestAnimationStates";
 import { chestStates } from "../../views/chestStates";
 
 export default function OpenableChest(props: {
+  id: number;
   x: number;
   y: number;
   z: number;
@@ -20,6 +21,7 @@ export default function OpenableChest(props: {
   setChestState: (chestState: (typeof chestStates)[number]) => void;
 }) {
   const {
+    id,
     userAddress,
     openInitiated,
     itemMetadatas,
@@ -33,20 +35,29 @@ export default function OpenableChest(props: {
     z,
   } = props;
 
-  const { packData, isLoading, isWaitingForReveal, isError, openPack } =
-    useOpenPack({ address: userAddress });
+  const { packData, packState, openPack } = useOpenPack({
+    address: userAddress,
+    id,
+  });
 
   useEffect(() => {
-    if (isLoading || isWaitingForReveal) {
-      setChestState("busy");
-    } else if (isError) {
-      setChestState("failed");
-    } else if (packData) {
-      setChestState("opened");
-    } else {
-      setChestState("idle");
+    switch (packState) {
+      case "idle":
+        setChestState("idle");
+        break;
+      case "commiting":
+      case "receiving":
+      case "revealing":
+        setChestState("busy");
+        break;
+      case "success":
+        setChestState("opened");
+        break;
+      case "fail":
+        setChestState("failed");
+        break;
     }
-  }, [isLoading, isWaitingForReveal, isError, packData]);
+  }, [packState]);
 
   useEffect(() => {
     if (packData) {
@@ -65,7 +76,7 @@ export default function OpenableChest(props: {
   const packModelUri = packChest?.animation_url;
 
   const packTokens: string[] = [];
-  if (packData && !isLoading && !isWaitingForReveal && showPrizes) {
+  if (packData && packState === "success" && showPrizes) {
     for (let i = 0; i < packData.tokenIds.length; i++) {
       for (let j = 0; j < packData.amounts[i]; j++) {
         packTokens.push(packData.tokenIds[i]);
@@ -92,28 +103,29 @@ export default function OpenableChest(props: {
           z={z}
           scale={1}
           busy={
-            (animOverride === undefined && !!isLoading) ||
+            (animOverride === undefined && packState === "commiting") ||
             animOverride === "unlocking"
           }
           shaking={
-            (animOverride === undefined && isWaitingForReveal) ||
+            (animOverride === undefined &&
+              (packState === "revealing" || packState === "receiving")) ||
             animOverride === "strugglingToOpen"
           }
           open={
             (animOverride === undefined && !!packData) ||
             animOverride === "opening"
           }
-          underlit={
-            (animOverride === undefined && isWaitingForReveal) ||
-            animOverride === "strugglingToOpen"
-          }
-          red={
-            (animOverride === undefined && isError) ||
-            animOverride === "hasProblem"
-          }
           innerLight={
             (animOverride === undefined && !!packData) ||
             animOverride === "opening"
+          }
+          underlit={
+            (animOverride === undefined && packState === "revealing") ||
+            animOverride === "strugglingToOpen"
+          }
+          red={
+            (animOverride === undefined && packState === "fail") ||
+            animOverride === "hasProblem"
           }
         />
       ) : null}
@@ -144,6 +156,8 @@ export default function OpenableChest(props: {
               x = 3;
               y = 3;
             }
+
+            console.log(x, y, v?.animation_url);
 
             return (
               v?.animation_url && (

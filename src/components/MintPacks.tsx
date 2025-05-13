@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { Button } from "boilerplate-design-system";
 
+const numPerMint = 30;
+
 export default function MintPacks(props: {
   refetchPackCollection: () => void;
 }) {
@@ -33,7 +35,7 @@ export default function MintPacks(props: {
       body: JSON.stringify({
         address,
         tokenId: "1",
-        amount: 3,
+        amount: numPerMint,
       }),
     })
       .then((response) => {
@@ -61,7 +63,7 @@ export default function MintPacks(props: {
       type="button"
       disabled={isEncoding || isMinting}
     >
-      {isEncoding || isMinting ? `Please wait...` : `Mint 3 Packs`}
+      {isEncoding || isMinting ? `Please wait...` : `Mint ${numPerMint} Packs`}
     </Button>
   );
 }
