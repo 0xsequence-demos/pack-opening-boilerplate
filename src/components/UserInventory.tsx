@@ -1,5 +1,5 @@
 import { TokenBalance } from "@0xsequence/indexer";
-import { Card, Image } from "boilerplate-design-system";
+import { Card, Image } from "@0xsequence-demos/boilerplate-design-system";
 
 export default function UserInventory(props: {
   title: string;

@@ -99,13 +99,16 @@ export default function OpenableChest(props: {
       {packState !== "idle" &&
         packState !== "success" &&
         packState !== "fail" && (
-          <PackOpener
-            id={id}
-            address={userAddress}
-            packState={packState}
-            setPackState={setPackState}
-            setPackData={setPackData}
-          />
+          <>
+            PackOpener
+            <PackOpener
+              id={id}
+              address={userAddress}
+              packState={packState}
+              setPackState={setPackState}
+              setPackData={setPackData}
+            />
+          </>
         )}
       {packChestTokenMetadata && chestGltfUri ? (
         <Chest

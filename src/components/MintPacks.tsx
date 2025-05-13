@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
-import { Button } from "boilerplate-design-system";
+import { Button } from "@0xsequence-demos/boilerplate-design-system";
 
 const numPerMint = 30;
 
