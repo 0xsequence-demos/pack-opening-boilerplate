@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useOpenPack } from "../../hooks/useOpenPack";
 import Chest from "./Chest";
 import GenericItem from "./GenericItem";
 import { TokenMetadata } from "@0xsequence/indexer";
 import { animationStates } from "../../views/chestAnimationStates";
 import { chestStates } from "../../views/chestStates";
+import { PackOpeningState } from "../../views/packOpeningStates";
+import { PackData } from "../../hooks/PackData";
+import { PackOpener } from "../../hooks/PackOpener";
 
 export default function OpenableChest(props: {
   id: number;
@@ -35,10 +37,13 @@ export default function OpenableChest(props: {
     z,
   } = props;
 
-  const { packData, packState, openPack } = useOpenPack({
-    address: userAddress,
-    id,
-  });
+  const [packState, setPackState] = useState<PackOpeningState>("idle");
+  useEffect(() => {
+    if (openInitiated && (packState === "idle" || packState === "fail")) {
+      setPackState("startingOpeningProcess");
+    }
+  }, [openInitiated]);
+  const [packData, setPackData] = useState<PackData | undefined>();
 
   useEffect(() => {
     switch (packState) {
@@ -65,15 +70,11 @@ export default function OpenableChest(props: {
     }
   }, [packData]);
 
-  useEffect(() => {
-    if (openInitiated) {
-      openPack();
-    }
-  }, [openInitiated]);
+  const packChestTokenMetadata = packMetadatas?.find(
+    (item) => item.tokenId === "1",
+  );
 
-  const packChest = packMetadatas?.find((item) => item.tokenId === "1");
-
-  const packModelUri = packChest?.animation_url;
+  const chestGltfUri = packChestTokenMetadata?.animation_url;
 
   const packTokens: string[] = [];
   if (packData && packState === "success" && showPrizes) {
@@ -95,9 +96,20 @@ export default function OpenableChest(props: {
 
   return (
     <>
-      {packChest && packModelUri ? (
+      {packState !== "idle" &&
+        packState !== "success" &&
+        packState !== "fail" && (
+          <PackOpener
+            id={id}
+            address={userAddress}
+            packState={packState}
+            setPackState={setPackState}
+            setPackData={setPackData}
+          />
+        )}
+      {packChestTokenMetadata && chestGltfUri ? (
         <Chest
-          gltfUrl={packModelUri}
+          gltfUrl={chestGltfUri}
           x={x}
           y={y}
           z={z}
@@ -120,7 +132,8 @@ export default function OpenableChest(props: {
             animOverride === "opening"
           }
           underlit={
-            (animOverride === undefined && packState === "revealing") ||
+            (animOverride === undefined &&
+              (packState === "revealing" || packState === "receiving")) ||
             animOverride === "strugglingToOpen"
           }
           red={
@@ -156,8 +169,6 @@ export default function OpenableChest(props: {
               x = 3;
               y = 3;
             }
-
-            console.log(x, y, v?.animation_url);
 
             return (
               v?.animation_url && (
