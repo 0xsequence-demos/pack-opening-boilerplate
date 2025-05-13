@@ -13,6 +13,8 @@ import ItemViewer3D from "../components/3d/ItemViewer3D";
 import { useCollectionBalance } from "../hooks/data";
 import MintPacks from "../components/MintPacks";
 import {
+  useGetTokenBalancesByContract,
+  useGetTokenBalancesDetails,
   useGetTokenMetadata,
   useGetTransactionHistory,
 } from "@0xsequence/hooks";
@@ -52,6 +54,8 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
     contractAddress: packContractAddress,
   });
 
+  console.log(packCollectionBalanceData);
+
   const { data: itemMetadatas } = useGetTokenMetadata({
     chainID: String(initialChainId),
     contractAddress: itemsContractAddress,
@@ -79,7 +83,20 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
     tokenIDs: ["1"],
   });
 
+  const balancesByContract = useGetTokenBalancesByContract({
+    chainIds: [initialChainId],
+    filter: {
+      contractAddresses: [packContractAddress],
+      accountAddresses: [userAddress],
+      contractStatus: "ALL",
+    },
+  });
+
+  console.log(balancesByContract.data);
+
   const { chains, switchChains } = useSwitchChain();
+
+  console.log("packCollectionBalanceData", packCollectionBalanceData);
 
   const chestsRemaining = packCollectionBalanceData
     ? packCollectionBalanceData.reduce((pv, cv) => Number(cv.balance) + pv, 0)
@@ -89,6 +106,9 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
     chainId,
     contractAddresses: [itemsContractAddress],
     accountAddresses: [userAddress],
+    page: {
+      pageSize: 200,
+    },
   });
 
   useEffect(() => {
@@ -179,6 +199,7 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
   return (
     <div>
       <pre>{JSON.stringify(packQueue, null, 2)}</pre>
+      {chestsRemaining}
       <button type="button" onClick={ripPack}>
         Rip Pack
       </button>
@@ -186,13 +207,13 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
         {history?.data?.pages[0].transactions?.map((item) => (
           <div key={item.blockNumber} className="grid grid-cols-3">
             {item.blockNumber}
-            <pre>
+            {/* <pre>
               {JSON.stringify(
                 item.transfers.map((transfer) => transfer.tokenMetadata),
                 null,
                 2,
               )}
-            </pre>
+            </pre> */}
           </div>
         ))}
       </div>
