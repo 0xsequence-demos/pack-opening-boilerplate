@@ -1,42 +1,26 @@
-import { AddressList } from "../components/AddressList";
-import { AddressListItem } from "../components/AddressList/AddressListItem";
+import { Spinner, Switch } from "@0xsequence/design-system";
 import { Button, Card } from "boilerplate-design-system";
 import { Address } from "viem";
-import UserInventory from "../components/UserInventory";
-import {
-  initialChainId,
-  itemsContractAddress,
-  packContractAddress,
-} from "../configs/chains";
-import View3D from "../components/3d/View3D";
-import ItemViewer3D from "../components/3d/ItemViewer3D";
-import { useCollectionBalance } from "../hooks/data";
-import MintPacks from "../components/MintPacks";
-import { useGetTokenMetadata } from "@0xsequence/hooks";
-import { allNetworks } from "@0xsequence/network";
 import { useEffect, useState } from "react";
-import OpenableChest from "../components/3d/OpenableChest";
-import { animationStates } from "./chestAnimationStates";
-import { chestStates } from "./chestStates";
 import { PackOpener } from "../hooks/PackOpener";
 import { PackOpeningState } from "./packOpeningStates";
 import { PackData } from "../hooks/PackData";
+import MintPacks from "../components/MintPacks";
+import BurnItems from "../components/BurnItems";
+import UserInventory from "../components/UserInventory";
+import { useCollectionBalance } from "../hooks/data";
+import { itemsContractAddress, packContractAddress } from "../configs/chains";
 
 const Connected = (props: { userAddress: Address; chainId: number }) => {
-  const { userAddress, chainId } = props;
+  const { userAddress } = props;
 
-  const addressListData: Array<[string, string]> = [];
+  const [autoOpen, setAutoOpen] = useState(false);
 
-  if (userAddress) {
-    addressListData.push(["User Address", userAddress]);
-  }
-  addressListData.push(["Items Contract", itemsContractAddress]);
-  addressListData.push(["Pack Contract", packContractAddress]);
+  const [debugPackState, setDebugPackState] =
+    useState<PackOpeningState>("idle");
 
-  const urlBase = chainId
-    ? allNetworks.find((chain) => chain.chainId === chainId)?.blockExplorer
-        ?.rootUrl
-    : undefined;
+  const [debugPackData, setDebugPackData] = useState<PackData | undefined>();
+  const [currentDebugPackId, setCurrentDebugPackId] = useState(1);
 
   const {
     data: packCollectionBalanceData,
@@ -46,47 +30,12 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
     contractAddress: packContractAddress,
   });
 
-  const { data: itemMetadatas } = useGetTokenMetadata({
-    chainID: String(initialChainId),
-    contractAddress: itemsContractAddress,
-    tokenIDs: [
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-      "11",
-      "12",
-      "13",
-      "14",
-    ],
-  });
-
-  const { data: packMetadatas } = useGetTokenMetadata({
-    chainID: String(initialChainId),
-    contractAddress: packContractAddress,
-    tokenIDs: ["1"],
-  });
-
-  const chestsRemaining = packCollectionBalanceData
-    ? packCollectionBalanceData.reduce((pv, cv) => Number(cv.balance) + pv, 0)
-    : "";
-
-  const [openChestInitiated, setOpenChestInitiated] = useState(false);
-
-  const [focusedChestState, setFocusedChestState] =
-    useState<(typeof chestStates)[number]>("idle");
-
-  const [chestSuccessCount, setChestSuccessCount] = useState(0);
-
-  const [animOverride, setAnimOverride] = useState<
-    (typeof animationStates)[number] | undefined
-  >(undefined);
+  const packsRemaining = packCollectionBalanceData
+    ? parseInt(
+        packCollectionBalanceData?.find((v) => v.tokenID === "1")?.balance ||
+          "0",
+      )
+    : -1;
 
   const {
     data: itemsCollectionBalanceData,
@@ -98,166 +47,76 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
   });
 
   useEffect(() => {
-    if (focusedChestState === "opened") {
+    let openAnother = false;
+    if (debugPackState === "success") {
+      setCurrentDebugPackId(currentDebugPackId + 1);
       refetchItemsCollectionBalance();
-      setTimeout(() => {
-        setChestSuccessCount(chestSuccessCount + 1);
-      }, 5000);
+      refetchPackCollectionBalance();
+      setDebugPackState("idle");
+      openAnother = autoOpen && packsRemaining > 0;
+    } else if (debugPackState === "commiting") {
+      setDebugPackData(undefined);
+    } else if (debugPackState === "idle") {
+      openAnother = autoOpen && packsRemaining > 0;
     }
-  }, [focusedChestState]);
-
-  const [debugPackState, setDebugPackState] =
-    useState<PackOpeningState>("idle");
-
-  const [debugPackData, setDebugPackData] = useState<PackData | undefined>();
+    if (openAnother) {
+      setTimeout(() => {
+        if (debugPackState === "idle" && packsRemaining > 0) {
+          setDebugPackState("startingOpeningProcess");
+        }
+      }, 3000);
+    }
+  }, [debugPackState, autoOpen]);
 
   return (
     <div className="flex flex-col gap-12">
-      <div className="relative">
-        <View3D>
-          <ItemViewer3D>
-            {Array.from({ length: 2 }, (_v, i) => {
-              if (chestSuccessCount === 0 && i === 0) {
-                return null;
-              }
-              if (
-                chestsRemaining === 0 &&
-                i === 1 &&
-                focusedChestState === "idle"
-              ) {
-                return null;
-              }
-              const j = i + chestSuccessCount;
-              return (
-                <OpenableChest
-                  key={j}
-                  id={j}
-                  x={i * 10 - 10}
-                  y={0}
-                  z={-2}
-                  userAddress={userAddress}
-                  showPrizes={i === 1}
-                  openInitiated={i === 1 && openChestInitiated}
-                  refetchPackCollectionBalance={refetchPackCollectionBalance}
-                  setChestState={setFocusedChestState}
-                  itemMetadatas={itemMetadatas}
-                  packMetadatas={packMetadatas}
-                  animOverride={animOverride}
-                />
-              );
-            })}
-          </ItemViewer3D>
-        </View3D>
-        {chestsRemaining && chestsRemaining > 0 ? (
-          <>
-            <div className="absolute inset-0 flex items-center justify-center mt-60">
-              {focusedChestState !== "busy" &&
-                focusedChestState !== "opened" &&
-                !openChestInitiated && (
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setOpenChestInitiated(true);
-                      setTimeout(() => setOpenChestInitiated(false), 100);
-                    }}
-                  >
-                    {focusedChestState === "failed"
-                      ? "Retry Opening Pack"
-                      : "Open Pack"}
-                  </Button>
-                )}
-            </div>
-            <div className="absolute bottom-4 left-4 text-36 font-heavy">
-              x{chestsRemaining}
-            </div>
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <MintPacks
-              refetchPackCollection={() => refetchPackCollectionBalance()}
-            />
-          </div>
-        )}
-      </div>
-      <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
-        <UserInventory
-          title={"Collectibles"}
-          itemsCollectionBalanceData={itemsCollectionBalanceData}
-          itemCollectionBalanceIsLoading={itemCollectionBalanceIsLoading}
-          refetchItemsCollectionBalance={refetchItemsCollectionBalance}
-        />
-      </Card>
-      <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
-        {chainId && (
-          <Card
-            collapsable
-            title="Extra info for nerds"
-            className="border-t border-white/10 rounded-none bg-transparent"
-          >
-            <AddressList>
-              {addressListData.map((data) => (
-                <AddressListItem
-                  key={data[0]}
-                  label={data[0]}
-                  address={data[1]}
-                  url={urlBase ? `${urlBase}address/` : ""}
-                />
-              ))}
-            </AddressList>
-          </Card>
-        )}
-      </Card>
-
       <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
         <Card
           collapsable
-          title="Animation debug"
+          open={true}
+          title="Packs"
           className="border-t border-white/10 rounded-none bg-transparent"
         >
-          <div className="flex flex-row gap-3">
-            {animationStates.map((i) => {
-              return (
-                <div
-                  key={i}
-                  onClick={() =>
-                    setAnimOverride(i === animOverride ? undefined : i)
-                  }
-                  className={`stroke-20 stroke-amber-50 inline-block m-1 p-3 rounded-2xl font-bold ${i === animOverride ? "bg-purple-500" : "bg-purple-800"}`}
-                >
-                  {i}
-                </div>
-              );
-            })}
-          </div>
-        </Card>
-      </Card>
+          {packsRemaining === undefined ? (
+            <div>Loading your packs...</div>
+          ) : (
+            <div>
+              You have {packsRemaining} pack{packsRemaining === 1 ? "" : "s"}
+            </div>
+          )}
 
-      <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
-        <Card
-          collapsable
-          title="Pack opening debug"
-          className="border-t border-white/10 rounded-none bg-transparent"
-        >
-          {debugPackState === "idle" ? (
+          <Switch
+            label="Auto-Open"
+            checked={autoOpen}
+            onCheckedChange={setAutoOpen}
+          />
+          {packsRemaining !== undefined &&
+          packsRemaining > 0 &&
+          !autoOpen &&
+          (debugPackState === "idle" || debugPackState === "fail") ? (
             <Button
               variant="primary"
               onClick={() => {
                 setDebugPackState("startingOpeningProcess");
               }}
             >
-              {focusedChestState === "failed"
-                ? "Retry Opening Pack"
-                : "Open Pack"}
+              {`${debugPackState === "fail" ? "Retry Opening Pack" : "Open Pack"} ${currentDebugPackId}`}
             </Button>
           ) : (
-            <div>{debugPackState}</div>
+            <div style={{ display: "flex" }}>
+              <Spinner size={"md"} />
+              <div className="px-4">
+                Pack {currentDebugPackId}: {debugPackState}
+              </div>
+            </div>
           )}
           <div className="flex flex-row gap-3">
             {debugPackState !== "idle" &&
               debugPackState !== "success" &&
               debugPackState !== "fail" && (
                 <PackOpener
-                  id={99}
+                  key={currentDebugPackId}
+                  id={currentDebugPackId}
                   address={userAddress}
                   packState={debugPackState}
                   setPackState={setDebugPackState}
@@ -265,12 +124,35 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
                 />
               )}
           </div>
-          {debugPackData &&
-            debugPackData.tokenIds.map((v, i) => (
-              <div key={i}>
-                {v} x{debugPackData.amounts[i]}
-              </div>
-            ))}
+          {debugPackData && (
+            <>
+              <div> Pack Contents:</div>
+              {debugPackData.tokenIds.map((v, i) => (
+                <div key={i}>
+                  Token {v} (x{debugPackData.amounts[i]})
+                </div>
+              ))}
+            </>
+          )}
+          {packsRemaining === 0 && (
+            <MintPacks refetchPackCollection={refetchPackCollectionBalance} />
+          )}
+        </Card>
+        <UserInventory
+          title={"Demo Items"}
+          itemsCollectionBalanceData={itemsCollectionBalanceData}
+          itemCollectionBalanceIsLoading={itemCollectionBalanceIsLoading}
+          refetchItemsCollectionBalance={refetchItemsCollectionBalance}
+        />
+        <Card
+          collapsable
+          title="Item Utils"
+          className="border-t border-white/10 rounded-none bg-transparent"
+        >
+          <BurnItems
+            refetchItemsCollection={refetchItemsCollectionBalance}
+            itemBalances={itemsCollectionBalanceData}
+          />
         </Card>
       </Card>
     </div>
