@@ -1,5 +1,11 @@
 import { ethers } from "ethers";
-import { useCallback, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import {
   useAccount,
   useTransactionReceipt,
@@ -8,23 +14,28 @@ import {
 } from "wagmi";
 import { ERC1155_PACK_ABI } from "../abi/pack/ERC1155Pack";
 import { packContractAddress } from "../configs/chains";
-import { packOpeningStates } from "../views/packOpeningStates";
+import { PackOpeningState } from "../views/packOpeningStates";
+import { PackData } from "./PackData";
 
-export function useOpenPack({
+export function PackOpener({
   id,
   address,
+  packState,
+  setPackState,
+  setPackData,
 }: {
   id: number;
   address: `0x${string}`;
+  packState: PackOpeningState;
+  setPackState: Dispatch<SetStateAction<PackOpeningState>>;
+  setPackData: Dispatch<SetStateAction<PackData | undefined>>;
 }) {
-  const [packState, setPackState] =
-    useState<(typeof packOpeningStates)[number]>("idle");
   const { chainId } = useAccount();
   const [revealHash, setRevealHash] = useState<string>();
 
   const myLog = useCallback(
     (msg: string) => {
-      console.log(`[${id}]`, msg);
+      console.log(`[${id}] ${msg}`);
     },
     [id],
   );
@@ -47,35 +58,48 @@ export function useOpenPack({
     },
   });
 
-  const openPack = () => {
-    setPackState("commiting");
-    writeContract({
-      chainId,
-      address: packContractAddress,
-      abi: ERC1155_PACK_ABI,
-      functionName: "commit",
-      args: [],
-    });
-  };
+  useEffect(() => {
+    if (packState === "startingOpeningProcess") {
+      setPackState("commiting");
+      writeContract({
+        chainId,
+        address: packContractAddress,
+        abi: ERC1155_PACK_ABI,
+        functionName: "commit",
+        args: [],
+      });
+    }
+  }, [packState]);
 
   //reveal
+  const [hasReceipt, setHasReceipt] = useState(false);
+
+  const transactionReceiptQueryEnabled =
+    (packState === "commiting" ||
+      packState === "revealing" ||
+      packState === "receiving") &&
+    !hasReceipt;
+
+  // myLog(`transactionReceiptQueryEnabled: ${transactionReceiptQueryEnabled}`);
+
   const { data: receipt, isError: isReceiptError } = useTransactionReceipt({
     chainId,
-    scopeKey: `revealReceipt${id}`,
+    scopeKey: `revealReceipt-${id}`,
     hash: revealHash! as `0x${string}`,
-    query: { enabled: !!revealHash },
+    query: {
+      enabled: transactionReceiptQueryEnabled,
+    },
   });
 
-  const [packData, setPackData] = useState<
-    | {
-        tokenIds: string[];
-        amounts: number[];
-      }
-    | undefined
-  >();
+  useEffect(() => {
+    if (receipt) {
+      console.log(receipt);
+      setHasReceipt(true);
+    }
+  }, [receipt]);
 
   useEffect(() => {
-    if (!receipt) {
+    if (!receipt || !hasReceipt) {
       return;
     }
     myLog("found transaction receipt");
@@ -105,8 +129,7 @@ export function useOpenPack({
         myLog(`- log ${i} does not have items`);
       }
     }
-    setPackData({ tokenIds: [], amounts: [] });
-  }, [receipt]);
+  }, [receipt, hasReceipt]);
 
   const isError = isCommitError || isReceiptError;
 
@@ -122,7 +145,10 @@ export function useOpenPack({
     abi: ERC1155_PACK_ABI,
     eventName: "Reveal(address user)",
     args: { user: address },
-    enabled: packState === "revealing" || packState === "receiving", //this seems not to disable
+    enabled:
+      packState === "commiting" ||
+      packState === "revealing" ||
+      packState === "receiving", //this seems not to disable
     onError() {
       setRevealHash(undefined);
     },
@@ -132,19 +158,10 @@ export function useOpenPack({
       }
       const [log] = logs;
       const hash = log.transactionHash as `0x${string}`;
-      const alreadyHadOne = !!revealHash;
       myLog(`reveal hash found: ${hash}`);
-      if (alreadyHadOne) {
-        myLog(`even though I already had one`);
-      }
       setPackState("receiving");
       setRevealHash(hash);
     },
   });
-
-  return {
-    packData: packState === "success" ? packData : null,
-    openPack,
-    packState,
-  };
+  return <></>;
 }
