@@ -6,6 +6,9 @@ import { PackOpeningState } from "./packOpeningStates";
 import { PackData } from "../hooks/PackData";
 import MintPacks from "../components/MintPacks";
 import BurnItems from "../components/BurnItems";
+import UserInventory from "../components/UserInventory";
+import { useCollectionBalance } from "../hooks/data";
+import { itemsContractAddress, packContractAddress } from "../configs/chains";
 
 const Connected = (props: { userAddress: Address; chainId: number }) => {
   const { userAddress } = props;
@@ -16,11 +19,38 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
   const [debugPackData, setDebugPackData] = useState<PackData | undefined>();
   const [debugPackCount, setDebugPackCount] = useState(0);
 
+  const {
+    data: packCollectionBalanceData,
+    refetch: refetchPackCollectionBalance,
+  } = useCollectionBalance({
+    accountAddress: userAddress,
+    contractAddress: packContractAddress,
+  });
+
+  const packsRemaining = packCollectionBalanceData
+    ? parseInt(
+        packCollectionBalanceData?.find((v) => v.tokenID === "1")?.balance ||
+          "0",
+      )
+    : undefined;
+
+  const {
+    data: itemsCollectionBalanceData,
+    isLoading: itemCollectionBalanceIsLoading,
+    refetch: refetchItemsCollectionBalance,
+  } = useCollectionBalance({
+    accountAddress: userAddress,
+    contractAddress: itemsContractAddress,
+  });
+
   useEffect(() => {
     if (debugPackState === "success") {
       setDebugPackState("idle");
-      setDebugPackData(undefined);
       setDebugPackCount(debugPackCount + 1);
+      refetchItemsCollectionBalance();
+      refetchPackCollectionBalance();
+    } else if (debugPackState === "commiting") {
+      setDebugPackData(undefined);
     }
   });
 
@@ -32,7 +62,16 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
           title="Pack opening debug"
           className="border-t border-white/10 rounded-none bg-transparent"
         >
-          {debugPackState === "idle" || debugPackState === "fail" ? (
+          {packsRemaining === undefined ? (
+            <div>Loading your packs...</div>
+          ) : (
+            <div>
+              You have {packsRemaining} pack{packsRemaining === 1 ? "" : "s"}
+            </div>
+          )}
+          {packsRemaining !== undefined &&
+          packsRemaining > 0 &&
+          (debugPackState === "idle" || debugPackState === "fail") ? (
             <Button
               variant="primary"
               onClick={() => {
@@ -58,22 +97,28 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
                 />
               )}
           </div>
-          {debugPackData &&
-            debugPackData.tokenIds.map((v, i) => (
-              <div key={i}>
-                {v} x{debugPackData.amounts[i]}
-              </div>
-            ))}
-
-          <MintPacks
-            refetchPackCollection={() => {
-              console.log("!");
-            }}
+          {debugPackData && (
+            <>
+              <div> Pack Contents:</div>
+              {debugPackData.tokenIds.map((v, i) => (
+                <div key={i}>
+                  Token {v} (x{debugPackData.amounts[i]})
+                </div>
+              ))}
+            </>
+          )}
+          {packsRemaining === 0 && (
+            <MintPacks refetchPackCollection={refetchPackCollectionBalance} />
+          )}
+          <UserInventory
+            title={"Inventory"}
+            itemsCollectionBalanceData={itemsCollectionBalanceData}
+            itemCollectionBalanceIsLoading={itemCollectionBalanceIsLoading}
+            refetchItemsCollectionBalance={refetchItemsCollectionBalance}
           />
           <BurnItems
-            refetchItemsCollection={() => {
-              console.log("!");
-            }}
+            refetchItemsCollection={refetchItemsCollectionBalance}
+            itemBalances={itemsCollectionBalanceData}
           />
         </Card>
       </Card>
