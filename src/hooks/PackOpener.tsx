@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   useAccount,
+  useBlockNumber,
   useTransactionReceipt,
   useWatchContractEvent,
   useWriteContract,
@@ -32,6 +33,9 @@ export function PackOpener({
 }) {
   const { chainId } = useAccount();
   const [revealHash, setRevealHash] = useState<string>();
+  const { data: blockNumber } = useBlockNumber();
+  const [earliestPossibleRevealBlock, setEarliestPossibleRevealBlock] =
+    useState<bigint | undefined>();
 
   const myLog = useCallback(
     (msg: string) => {
@@ -49,7 +53,7 @@ export function PackOpener({
     mutation: {
       onSuccess: () => {
         myLog("Commit successful. Reveal event is expected");
-        setPackState("revealing");
+        setEarliestPossibleRevealBlock(blockNumber);
       },
       onError: (error) => {
         console.error("Error committing pack", error);
@@ -59,7 +63,7 @@ export function PackOpener({
   });
 
   useEffect(() => {
-    if (packState === "startingOpeningProcess") {
+    if (packState === "startingOpeningProcess" && blockNumber !== undefined) {
       setPackState("commiting");
       writeContract({
         chainId,
@@ -69,22 +73,20 @@ export function PackOpener({
         args: [],
       });
     }
-  }, [packState]);
+  }, [packState, blockNumber]);
 
   //reveal
-  const [hasReceipt, setHasReceipt] = useState(false);
-
   const transactionReceiptQueryEnabled =
     (packState === "commiting" ||
       packState === "revealing" ||
       packState === "receiving") &&
-    !hasReceipt;
+    !!revealHash;
 
   // myLog(`transactionReceiptQueryEnabled: ${transactionReceiptQueryEnabled}`);
 
   const { data: receipt, isError: isReceiptError } = useTransactionReceipt({
     chainId,
-    scopeKey: `revealReceipt-${id}`,
+    scopeKey: `revealReceipt-${revealHash}`,
     hash: revealHash! as `0x${string}`,
     query: {
       enabled: transactionReceiptQueryEnabled,
@@ -92,14 +94,7 @@ export function PackOpener({
   });
 
   useEffect(() => {
-    if (receipt) {
-      console.log(receipt);
-      setHasReceipt(true);
-    }
-  }, [receipt]);
-
-  useEffect(() => {
-    if (!receipt || !hasReceipt) {
+    if (!receipt) {
       return;
     }
     myLog("found transaction receipt");
@@ -126,10 +121,10 @@ export function PackOpener({
           myLog("  - that belong to someone else");
         }
       } else {
-        myLog(`- log ${i} does not have items`);
+        myLog(`- log ${i} (${parsedLog?.name}) does not have items`);
       }
     }
-  }, [receipt, hasReceipt]);
+  }, [receipt]);
 
   const isError = isCommitError || isReceiptError;
 
@@ -143,7 +138,8 @@ export function PackOpener({
     chainId,
     address: packContractAddress,
     abi: ERC1155_PACK_ABI,
-    eventName: "Reveal(address user)",
+    eventName: "Reveal",
+    fromBlock: earliestPossibleRevealBlock,
     args: { user: address },
     enabled:
       packState === "commiting" ||
@@ -153,14 +149,13 @@ export function PackOpener({
       setRevealHash(undefined);
     },
     onLogs(logs) {
-      if (revealHash) {
-        return;
+      for (const log of logs) {
+        myLog(`event args: ${log.args}`);
+        const hash = log.transactionHash as `0x${string}`;
+        myLog(`reveal hash found: ${hash}`);
+        setPackState("receiving");
+        setRevealHash(hash);
       }
-      const [log] = logs;
-      const hash = log.transactionHash as `0x${string}`;
-      myLog(`reveal hash found: ${hash}`);
-      setPackState("receiving");
-      setRevealHash(hash);
     },
   });
   return <></>;
