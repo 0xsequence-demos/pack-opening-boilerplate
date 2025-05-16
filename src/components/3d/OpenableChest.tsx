@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Chest from "./Chest";
 import GenericItem from "./GenericItem";
 import { TokenMetadata } from "@0xsequence/indexer";
-import { animationStates } from "../../views/chestAnimationStates";
-import { chestStates } from "../../views/chestStates";
-import { PackOpeningState } from "../../views/packOpeningStates";
-import { PackData } from "../../hooks/PackData";
-import { PackOpener } from "../../hooks/PackOpener";
+import { ChestAnimationState } from "../../helpers/chestAnimationStates";
+import { ChestState } from "../../helpers/chestStates";
+import { PackOpeningState } from "../../helpers/packOpeningStates";
+import { PackData } from "../../helpers/PackData";
+import { PackOpener } from "../PackOpener";
 
 export default function OpenableChest(props: {
   id: number;
@@ -16,11 +16,11 @@ export default function OpenableChest(props: {
   userAddress: `0x${string}`;
   openInitiated: boolean;
   showPrizes: boolean;
-  packMetadatas: TokenMetadata[] | undefined;
-  itemMetadatas: TokenMetadata[] | undefined;
-  animOverride: (typeof animationStates)[number] | undefined;
+  packMetadatas?: TokenMetadata[];
+  itemMetadatas?: TokenMetadata[];
+  animOverride?: ChestAnimationState;
   refetchPackCollectionBalance: () => void;
-  setChestState: (chestState: (typeof chestStates)[number]) => void;
+  setChestState: Dispatch<SetStateAction<ChestState>>;
 }) {
   const {
     id,

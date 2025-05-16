@@ -15,8 +15,8 @@ import {
 } from "wagmi";
 import { ERC1155_PACK_ABI } from "../abi/pack/ERC1155Pack";
 import { packContractAddress } from "../configs/chains";
-import { PackOpeningState } from "../views/packOpeningStates";
-import { PackData } from "./PackData";
+import { PackOpeningState } from "../helpers/packOpeningStates";
+import { PackData } from "../helpers/PackData";
 
 export function PackOpener({
   id,
