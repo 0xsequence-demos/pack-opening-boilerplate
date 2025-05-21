@@ -1,10 +1,8 @@
 export const packOpeningStates = [
   "idle",
   "startingOpeningProcess",
-  "checkingRevealStatus",
   "commiting",
   "revealing",
-  "revealBackup",
   "receiving",
   "success",
   "fail",

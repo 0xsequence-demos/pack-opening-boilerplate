@@ -43,6 +43,11 @@ export default function DebuggingAndUtils(props: {
   const [debugPackState, setDebugPackState] =
     useState<PackOpeningState>("idle");
 
+  const debugPackStateRef = useRef(debugPackState);
+  useEffect(() => {
+    debugPackStateRef.current = debugPackState;
+  }, [debugPackState]);
+
   const [debugPackData, setDebugPackData] = useState<PackData | undefined>();
   const [currentDebugPackId, setCurrentDebugPackId] = useState(1);
 
@@ -77,7 +82,10 @@ export default function DebuggingAndUtils(props: {
     }
     if (openAnother) {
       setTimeout(() => {
-        if (debugPackState === "idle" && packsRemainingRef.current > 0) {
+        if (
+          debugPackStateRef.current === "idle" &&
+          packsRemainingRef.current > 0
+        ) {
           setDebugPackState("startingOpeningProcess");
         }
       }, 4000);

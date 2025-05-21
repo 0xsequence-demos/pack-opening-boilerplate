@@ -14,13 +14,9 @@ import {
   useWriteContract,
 } from "wagmi";
 import { ERC1155_PACK_ABI } from "../abi/pack/ERC1155Pack";
-import { initialChainId, packContractAddress } from "../configs/chains";
+import { packContractAddress } from "../configs/chains";
 import { PackOpeningState } from "../helpers/packOpeningStates";
 import { PackData } from "../helpers/PackData";
-import { useAPIClient } from "@0xsequence/hooks";
-import { OnChainRevealState } from "../helpers/onChainRevealStates";
-import OnChainRevealStateChecker from "./OnChainRevealStateChecker";
-import { useRef } from "react";
 
 export function PackOpener({
   id,
@@ -52,21 +48,6 @@ export function PackOpener({
     myLog(`((${packState}))`);
   }, [packState]);
 
-  const [onChainRevealState, setOnChainRevealState] =
-    useState<OnChainRevealState>("unknown");
-
-  useEffect(() => {
-    if (onChainRevealState !== "unknown") {
-      myLog(`onChainRevealState: ${onChainRevealState}`);
-    }
-  }, [onChainRevealState]);
-
-  useEffect(() => {
-    if (packState === "startingOpeningProcess") {
-      setPackState("checkingRevealStatus");
-    }
-  }, [packState]);
-
   // commit
   const { writeContract, isError: isCommitError } = useWriteContract({
     mutation: {
@@ -83,64 +64,32 @@ export function PackOpener({
   });
 
   useEffect(() => {
-    if (blockNumber !== undefined) {
-      if (onChainRevealState === "ready") {
-        setPackState("commiting");
-        writeContract({
-          chainId,
-          address: packContractAddress,
-          abi: ERC1155_PACK_ABI,
-          functionName: "commit",
-          args: [],
-        });
-      } else if (onChainRevealState === "pending") {
-        setPackState("revealBackup");
-      }
+    if (packState === "startingOpeningProcess" && blockNumber !== undefined) {
+      setPackState("commiting");
+      writeContract({
+        chainId,
+        address: packContractAddress,
+        abi: ERC1155_PACK_ABI,
+        functionName: "commit",
+        args: [],
+      });
     }
-  }, [blockNumber, onChainRevealState]);
-
-  const apiClient = useAPIClient();
-
-  useEffect(() => {
-    if (packState === "revealBackup") {
-      apiClient
-        .getRevealTxData({
-          chainId: initialChainId,
-          contractAddress: packContractAddress,
-          userAddress: address,
-        })
-        .then((data) => {
-          myLog(JSON.stringify(data));
-        })
-        .catch((reason) => {
-          myLog("API getRevealTxData() failed:" + reason);
-        });
-    }
-  }, [packState]);
+  }, [packState, blockNumber]);
 
   //reveal
   const transactionReceiptQueryEnabled =
     (packState === "commiting" ||
       packState === "revealing" ||
-      packState === "revealBackup" ||
       packState === "receiving") &&
     !!revealHash;
 
-  const packStateRef = useRef(packState);
-
-  useEffect(() => {
-    packStateRef.current = packState;
-  }, [packState]);
-
-  useEffect(() => {
-    if (packState === "revealing") {
-      setTimeout(() => {
-        if (packStateRef.current === "revealing") {
-          setPackState("revealBackup");
-        }
-      }, 20000);
-    }
-  });
+  // useEffect(() => {
+  //   if (packState === "revealing") {
+  //     setTimeout(() => {
+  //       setPackState("revealBackup");
+  //     }, 2000);
+  //   }
+  // });
 
   // myLog(`transactionReceiptQueryEnabled: ${transactionReceiptQueryEnabled}`);
 
@@ -204,7 +153,6 @@ export function PackOpener({
     enabled:
       packState === "commiting" ||
       packState === "revealing" ||
-      packState === "revealBackup" ||
       packState === "receiving", //this seems not to disable
     onError() {
       setRevealHash(undefined);
@@ -219,15 +167,5 @@ export function PackOpener({
       }
     },
   });
-  return (
-    <>
-      {packState === "checkingRevealStatus" && blockNumber && (
-        <OnChainRevealStateChecker
-          address={address}
-          blockNumber={blockNumber}
-          setOnChainPackState={setOnChainRevealState}
-        />
-      )}
-    </>
-  );
+  return <></>;
 }
