@@ -50,9 +50,11 @@ export default function OpenableChest(props: {
       case "idle":
         setChestState("idle");
         break;
+      case "checkingRevealStatus":
       case "commiting":
       case "receiving":
       case "revealing":
+      case "revealBackup":
         setChestState("busy");
         break;
       case "success":
@@ -115,12 +117,16 @@ export default function OpenableChest(props: {
           z={z}
           scale={1}
           busy={
-            (animOverride === undefined && packState === "commiting") ||
+            (animOverride === undefined &&
+              (packState === "checkingRevealStatus" ||
+                packState === "commiting")) ||
             animOverride === "unlocking"
           }
           shaking={
             (animOverride === undefined &&
-              (packState === "revealing" || packState === "receiving")) ||
+              (packState === "revealing" ||
+                packState === "revealBackup" ||
+                packState === "receiving")) ||
             animOverride === "strugglingToOpen"
           }
           open={
@@ -133,7 +139,9 @@ export default function OpenableChest(props: {
           }
           underlit={
             (animOverride === undefined &&
-              (packState === "revealing" || packState === "receiving")) ||
+              (packState === "revealing" ||
+                packState === "revealBackup" ||
+                packState === "receiving")) ||
             animOverride === "strugglingToOpen"
           }
           red={

@@ -11,6 +11,7 @@ import {
   ChestAnimationState,
   chestAnimationStates,
 } from "../helpers/chestAnimationStates";
+import { useRef } from "react";
 
 export default function DebuggingAndUtils(props: {
   packsRemaining: number;
@@ -30,6 +31,12 @@ export default function DebuggingAndUtils(props: {
     animOverride,
     setAnimOverride,
   } = props;
+
+  const packsRemainingRef = useRef(packsRemaining);
+
+  useEffect(() => {
+    packsRemainingRef.current = packsRemaining;
+  }, [packsRemaining]);
 
   const [autoOpen, setAutoOpen] = useState(false);
 
@@ -70,7 +77,7 @@ export default function DebuggingAndUtils(props: {
     }
     if (openAnother) {
       setTimeout(() => {
-        if (debugPackState === "idle" && packsRemaining > 0) {
+        if (debugPackState === "idle" && packsRemainingRef.current > 0) {
           setDebugPackState("startingOpeningProcess");
         }
       }, 4000);
