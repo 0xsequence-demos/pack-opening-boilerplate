@@ -9,6 +9,7 @@ import {
 import {
   useAccount,
   useBlockNumber,
+  useReadContract,
   useTransactionReceipt,
   useWatchContractEvent,
   useWriteContract,
@@ -48,6 +49,26 @@ export function PackOpener({
     myLog(`((${packState}))`);
   }, [packState]);
 
+  // check for revealIdx
+  const {
+    isError: isGetRevealidxError,
+    isSuccess: isGetRevealIdxSuccess,
+    data: revealIdxData,
+  } = useReadContract({
+    address: packContractAddress,
+    abi: ERC1155_PACK_ABI,
+    functionName: "getRevealIdx",
+    args: [address],
+    scopeKey: `${blockNumber}`,
+  });
+
+  console.log(
+    revealIdxData,
+    isGetRevealidxError,
+    isGetRevealIdxSuccess,
+    blockNumber,
+  );
+
   // commit
   const { writeContract, isError: isCommitError } = useWriteContract({
     mutation: {
@@ -65,23 +86,45 @@ export function PackOpener({
 
   useEffect(() => {
     if (packState === "startingOpeningProcess" && blockNumber !== undefined) {
-      setPackState("commiting");
-      writeContract({
-        chainId,
-        address: packContractAddress,
-        abi: ERC1155_PACK_ABI,
-        functionName: "commit",
-        args: [],
-      });
+      if (isGetRevealidxError) {
+        setPackState("commiting");
+        writeContract({
+          chainId,
+          address: packContractAddress,
+          abi: ERC1155_PACK_ABI,
+          functionName: "commit",
+          args: [],
+        });
+      } else if (isGetRevealIdxSuccess) {
+        myLog("revealIdxData: " + revealIdxData);
+        setPackState("revealBackup");
+      }
     }
-  }, [packState, blockNumber]);
+  }, [
+    packState,
+    blockNumber,
+    isGetRevealidxError,
+    isGetRevealIdxSuccess,
+    revealIdxData,
+  ]);
+
+  // useAPIClient().pack
 
   //reveal
   const transactionReceiptQueryEnabled =
     (packState === "commiting" ||
       packState === "revealing" ||
+      packState === "revealBackup" ||
       packState === "receiving") &&
     !!revealHash;
+
+  useEffect(() => {
+    if (packState === "revealing") {
+      setTimeout(() => {
+        setPackState("revealBackup");
+      }, 2000);
+    }
+  });
 
   // myLog(`transactionReceiptQueryEnabled: ${transactionReceiptQueryEnabled}`);
 
@@ -145,6 +188,7 @@ export function PackOpener({
     enabled:
       packState === "commiting" ||
       packState === "revealing" ||
+      packState === "revealBackup" ||
       packState === "receiving", //this seems not to disable
     onError() {
       setRevealHash(undefined);

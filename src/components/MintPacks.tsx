@@ -7,6 +7,7 @@ const numPerMint = 50;
 export default function MintPacks(props: {
   refetchPackCollection: () => void;
 }) {
+  const { refetchPackCollection } = props;
   const { address } = useAccount();
   const {
     isPending: isEncoding,
@@ -21,6 +22,13 @@ export default function MintPacks(props: {
   }, [address, isEncoding, signMessage, signedMessage]);
 
   const [isMinting, setIsMinting] = useState(false);
+  const [isCoolingDown, setIsCoolingDown] = useState(false);
+
+  useEffect(() => {
+    if (isCoolingDown) {
+      setTimeout(() => setIsCoolingDown(false), 5000);
+    }
+  }, [isCoolingDown]);
 
   const requestMint = () => {
     if (isMinting) {
@@ -43,7 +51,8 @@ export default function MintPacks(props: {
           console.log(d);
           setTimeout(() => {
             setIsMinting(false);
-            props.refetchPackCollection();
+            setIsCoolingDown(true);
+            refetchPackCollection();
           }, 1000);
         });
       })
@@ -55,15 +64,17 @@ export default function MintPacks(props: {
       });
   };
 
+  const isBusy = isEncoding || isMinting || isCoolingDown;
+
   return (
     <Button
       variant="primary"
       className="purchase"
       onClick={requestMint}
       type="button"
-      disabled={isEncoding || isMinting}
+      disabled={isBusy}
     >
-      {isEncoding || isMinting ? `Please wait...` : `Mint ${numPerMint} Packs`}
+      {isBusy ? `Please wait...` : `Mint ${numPerMint} Packs`}
     </Button>
   );
 }

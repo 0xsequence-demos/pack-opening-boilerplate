@@ -45,6 +45,7 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
         packsRemaining={packsRemaining}
         refetchItemsCollectionBalance={refetchItemsCollectionBalance}
         refetchPackCollectionBalance={refetchPackCollectionBalance}
+        animOverride={animOverride}
       />
       <ExtraInfo
         itemsCollectionBalanceData={itemsCollectionBalanceData}

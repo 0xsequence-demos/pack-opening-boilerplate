@@ -3,6 +3,7 @@ export const packOpeningStates = [
   "startingOpeningProcess",
   "commiting",
   "revealing",
+  "revealBackup",
   "receiving",
   "success",
   "fail",

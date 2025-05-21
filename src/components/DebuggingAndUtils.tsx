@@ -39,9 +39,25 @@ export default function DebuggingAndUtils(props: {
   const [debugPackData, setDebugPackData] = useState<PackData | undefined>();
   const [currentDebugPackId, setCurrentDebugPackId] = useState(1);
 
+  const [packPerformanceHistory, setPackPerformanceHistory] = useState<
+    number[]
+  >([]);
+
+  const [lastStartTime, setLastStartTime] = useState(0);
+
+  useEffect(() => {
+    if (debugPackState === "startingOpeningProcess") {
+      setLastStartTime(Date.now());
+    }
+  }, [debugPackState]);
+
   useEffect(() => {
     let openAnother = false;
     if (debugPackState === "success") {
+      const now = Date.now();
+      setPackPerformanceHistory(
+        packPerformanceHistory.concat([now - lastStartTime]),
+      );
       setCurrentDebugPackId(currentDebugPackId + 1);
       refetchItemsCollectionBalance();
       refetchPackCollectionBalance();
@@ -57,9 +73,14 @@ export default function DebuggingAndUtils(props: {
         if (debugPackState === "idle" && packsRemaining > 0) {
           setDebugPackState("startingOpeningProcess");
         }
-      }, 3000);
+      }, 4000);
     }
   }, [debugPackState, autoOpen]);
+
+  const packPerformanceMax = packPerformanceHistory.reduce(
+    (pv, cv) => Math.max(cv, pv),
+    0,
+  );
 
   return (
     <>
@@ -129,6 +150,32 @@ export default function DebuggingAndUtils(props: {
           )}
           {packsRemaining === 0 && (
             <MintPacks refetchPackCollection={refetchPackCollectionBalance} />
+          )}
+          {packPerformanceHistory.length > 0 && (
+            <div className="bg-gray-600 scroll-auto h-40 overflow-scroll rounded-md">
+              <>
+                <div className="px-2">
+                  Pack Performance History (durations):
+                </div>
+                {packPerformanceHistory.map((v, i) => {
+                  const ratio = v / packPerformanceMax;
+                  const ratioColor = ratio * ratio;
+                  return (
+                    <div
+                      key={i}
+                      className="m-1 px-2 transition-all duration-1000"
+                      style={{
+                        width: `${ratio * 100}%`,
+                        backgroundColor: `rgb(${~~(Math.sqrt(ratioColor) * 200)}, ${~~((1 - ratioColor * ratioColor) * 100 + 100)}, 0)`,
+                      }}
+                    >
+                      {i + 1}:{"\u00A0"}
+                      {(v * 0.001).toFixed(1)}s
+                    </div>
+                  );
+                })}
+              </>
+            </div>
           )}
         </Card>
         <Card
