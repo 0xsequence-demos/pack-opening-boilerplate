@@ -71,7 +71,7 @@ export default function PackOpeningInteractive3D(props: {
 
   return (
     <div className="relative">
-      <View3D>
+      <View3D lookUp={focusedChestState === "opened"}>
         <ItemViewer3D>
           {Array.from({ length: 2 }, (_v, i) => {
             if (chestSuccessCount === 0 && i === 0) {

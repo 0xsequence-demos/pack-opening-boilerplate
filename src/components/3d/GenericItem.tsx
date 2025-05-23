@@ -97,7 +97,7 @@ export default function GenericItem(props: {
   return (
     <animated.group
       position={[0, 0, 0]}
-      rotation={[0.25, 0.65, 0]}
+      rotation={[0.75, 0.65, 0]}
       scale={scale}
       ref={myGroupOuter}
     >

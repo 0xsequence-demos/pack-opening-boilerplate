@@ -156,7 +156,7 @@ export default function Chest(props: {
             </mesh>
             <pointLight
               position={[0, 0, 0]}
-              intensity={200}
+              intensity={100}
               color={[1, 0.8, 0.3]}
             />
           </>

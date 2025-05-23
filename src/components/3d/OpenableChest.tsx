@@ -149,6 +149,7 @@ export default function OpenableChest(props: {
 
             let x = 0;
             let y = 0;
+            let z = packData ? 2.5 : 0;
 
             //hexagonal spiral algorithm
             if (i > 0) {
@@ -167,7 +168,8 @@ export default function OpenableChest(props: {
 
             if (away) {
               x = 3;
-              y = 3;
+              y = 4;
+              z = 4;
             }
 
             return (
@@ -175,10 +177,10 @@ export default function OpenableChest(props: {
                 <GenericItem
                   key={`${v.tokenId}-${i}`}
                   gltfUrl={v.animation_url}
-                  x={x}
-                  y={y}
-                  z={packData ? 2 : 0}
-                  scale={v.properties?.type === "Resource" ? 0.15 : 0.35}
+                  x={x * 1.2}
+                  y={y * 1.2 + 3.75}
+                  z={z}
+                  scale={v.properties?.type === "Resource" ? 0.2 : 0.4}
                 />
               )
             );

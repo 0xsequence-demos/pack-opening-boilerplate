@@ -4,8 +4,10 @@ import { ReactNode, Suspense } from "react";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 
 import Loader3D from "./Loader";
+import TiltyCamera from "./TiltyCamera";
 
-function View3D(props: { children: ReactNode }) {
+function View3D(props: { children: ReactNode; lookUp: boolean }) {
+  const { lookUp } = props;
   return (
     <Canvas style={{ aspectRatio: 1, borderRadius: "20px" }}>
       <Suspense fallback={<Loader3D />}>
@@ -24,6 +26,7 @@ function View3D(props: { children: ReactNode }) {
           />
         </EffectComposer>
       </Suspense>
+      <TiltyCamera lookUp={lookUp} />
     </Canvas>
   );
 }
