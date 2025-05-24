@@ -41,7 +41,7 @@ async function main() {
 
   const packRecipes: [string, number, string, number][] = [];
 
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 10000; i++) {
     const toolGrade = Math.random() > 0.75 ? "Refined" : "Crude";
     const item1 = randItem(
       tools.filter((t) => t.properties?.grade === toolGrade),
