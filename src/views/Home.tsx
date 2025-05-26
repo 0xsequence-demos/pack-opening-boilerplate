@@ -1,6 +1,6 @@
 import { useAccount, useDisconnect, useSwitchChain } from "wagmi";
 
-import { SequenceBoilerplate } from "boilerplate-design-system";
+import { SequenceBoilerplate } from "@0xsequence-demos/boilerplate-design-system";
 import NotConnected from "./NotConnected";
 import Connected from "./Connected";
 

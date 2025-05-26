@@ -1,4 +1,4 @@
-import { Card } from "boilerplate-design-system";
+import { Card } from "@0xsequence-demos/boilerplate-design-system";
 import UserInventory from "./UserInventory";
 import { AddressList } from "./AddressList";
 import { AddressListItem } from "./AddressList/AddressListItem";

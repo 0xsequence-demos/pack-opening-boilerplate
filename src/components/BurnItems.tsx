@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useWriteContract } from "wagmi";
-import { Button } from "boilerplate-design-system";
+import { Button } from "@0xsequence-demos/boilerplate-design-system";
 import { defaultChainId, itemsContractAddress } from "../configs/chains";
 import { TokenBalance } from "@0xsequence/indexer";
 import { ERC1155_SALE_ITEMS_ABI } from "@0xsequence/abi";

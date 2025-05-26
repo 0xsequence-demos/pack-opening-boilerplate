@@ -1,5 +1,5 @@
 import { Spinner, Switch } from "@0xsequence/design-system";
-import { Button, Card } from "boilerplate-design-system";
+import { Button, Card } from "@0xsequence-demos/boilerplate-design-system";
 import { PackOpener } from "./PackOpener";
 import MintPacks from "./MintPacks";
 import BurnItems from "./BurnItems";

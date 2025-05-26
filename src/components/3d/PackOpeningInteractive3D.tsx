@@ -11,7 +11,7 @@ import {
   packContractAddress,
 } from "../../configs/chains";
 import { ChestAnimationState } from "../../helpers/chestAnimationStates";
-import { Button } from "boilerplate-design-system";
+import { Button } from "@0xsequence-demos/boilerplate-design-system";
 
 export default function PackOpeningInteractive3D(props: {
   userAddress: `0x${string}`;

@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "0xsequence": "^2.3.16",
+    "@0xsequence-demos/boilerplate-design-system": "^0.2.5",
     "@0xsequence/abi": "^2.3.16",
     "@0xsequence/auth": "^2.3.16",
     "@0xsequence/checkout": "^5.3.3",
@@ -32,7 +33,6 @@
     "@react-three/fiber": "^9.1.2",
     "@react-three/postprocessing": "^3.0.4",
     "@tanstack/react-query": "^5.76.1",
-    "boilerplate-design-system": "github:0xsequence-demos/boilerplate-design-system#42564000bc8653348b1fb7d25885908faa5fa355",
     "ethers": "6.14.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
