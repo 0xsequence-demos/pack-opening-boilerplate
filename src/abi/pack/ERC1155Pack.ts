@@ -580,4 +580,4 @@ export const ERC1155_PACK_ABI = [
   { type: "error", name: "NoBalance", inputs: [] },
   { type: "error", name: "NoCommit", inputs: [] },
   { type: "error", name: "PendingReveal", inputs: [] },
-];
+] as const;

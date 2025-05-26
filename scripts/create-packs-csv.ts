@@ -41,7 +41,7 @@ async function main() {
 
   const packRecipes: [string, number, string, number][] = [];
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 10000; i++) {
     const toolGrade = Math.random() > 0.75 ? "Refined" : "Crude";
     const item1 = randItem(
       tools.filter((t) => t.properties?.grade === toolGrade),
@@ -60,15 +60,13 @@ async function main() {
   const csvValues = packRecipes.map((recipe, i) => [
     i + 1,
     tokenContractAddress,
-    recipe[0],
-    recipe[1],
-    tokenContractAddress,
-    recipe[2],
-    recipe[3],
+    `"${recipe[0]},${recipe[2]}"`,
+    `"${recipe[1]},${recipe[3]}"`,
   ]);
   const csvRows = csvValues.map((v) => v.join(","));
   const data = [
-    "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts,Item 2 Token Addr,Item 2 Token IDs,Item 2 Amounts",
+    // "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts,Item 2 Token Addr,Item 2 Token IDs,Item 2 Amounts",
+    "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts",
   ]
     .concat(csvRows)
     .join("\n");
