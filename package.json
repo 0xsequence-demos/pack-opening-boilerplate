@@ -4,11 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "echo \"Attention: front-end client and cloudflare function development use different tools. \n\nPlease be more specific: \n\npnpm run dev:vite \npnpm run dev:cf\"",
-    "dev:vite": "vite",
-    "dev:cf": "concurrently \"pnpm run dev:cf:functions\" \"pnpm run dev:cf:build\"",
-    "dev:cf:functions": "wrangler pages dev",
-    "dev:cf:build": "nodemon  --watch 'src/**/*' -e ts,tsx --exec \"pnpm run build\"",
+    "dev": "vite",
     "create-packs-csv": "tsx scripts/create-packs-csv.ts",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
@@ -42,6 +38,7 @@
     "wagmi": "^2.15.4"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.2.4",
     "@cloudflare/workers-types": "^4.20250525.0",
     "@eslint/js": "^9.27.0",
     "@tailwindcss/vite": "^4.1.7",

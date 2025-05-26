@@ -163,9 +163,7 @@ export default function DebuggingAndUtils(props: {
               ))}
             </>
           )}
-          {packsRemaining === 0 && (
-            <MintPacks refetchPackCollection={refetchPackCollectionBalance} />
-          )}
+          <MintPacks refetchPackCollection={refetchPackCollectionBalance} />
           {packPerformanceHistory.length > 0 && (
             <div className="bg-gray-600 scroll-auto h-40 overflow-scroll rounded-md">
               <>
