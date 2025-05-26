@@ -26,7 +26,7 @@ export default function App() {
     projectAccessKey,
     defaultTheme: "dark",
     signIn: {
-      projectName: "Sequence Pack Opening Boilerplate",
+      projectName: "Pack Opening Boilerplate",
     },
   };
 
@@ -35,7 +35,7 @@ export default function App() {
     chainIds,
     defaultChainId,
     waasConfigKey,
-    appName: "Sequence Pack Opening Boilerplate",
+    appName: "Pack Opening Boilerplate",
     enableConfirmationModal:
       localStorage.getItem("confirmationEnabled") === "true",
     google: {
