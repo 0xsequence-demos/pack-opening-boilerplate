@@ -156,9 +156,9 @@ export default function DebuggingAndUtils(props: {
           {debugPackData && (
             <>
               <div> Pack Contents:</div>
-              {debugPackData.tokenIds.map((v, i) => (
+              {debugPackData.map((v, i) => (
                 <div key={i}>
-                  Token {v} (x{debugPackData.amounts[i]})
+                  Token {v.contract} ({v.type}) #{v.tokenId} (x{v.amount})
                 </div>
               ))}
             </>

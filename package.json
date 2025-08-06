@@ -10,6 +10,7 @@
     "dev:cf:functions": "wrangler pages dev",
     "dev:cf:build": "nodemon  --watch 'src/**/*' -e ts,tsx --exec \"pnpm run build\"",
     "create-packs-csv": "tsx scripts/create-packs-csv.ts",
+    "create-packs-csv-2": "tsx scripts/create-packs-csv-2.ts > generated-packs-2.csv",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",

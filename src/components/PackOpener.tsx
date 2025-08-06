@@ -17,6 +17,7 @@ import { ERC1155_PACK_ABI } from "../abi/pack/ERC1155Pack";
 import { packContractAddress } from "../configs/chains";
 import { PackOpeningState } from "../helpers/packOpeningStates";
 import { PackData } from "../helpers/PackData";
+import { ERC1155_SALE_ITEMS_ABI, ERC721_SALE_ITEMS_ABI } from "@0xsequence/abi";
 
 export function PackOpener({
   id,
@@ -71,7 +72,7 @@ export function PackOpener({
         address: packContractAddress,
         abi: ERC1155_PACK_ABI,
         functionName: "commit",
-        args: [],
+        args: [BigInt(4)],
       });
     }
   }, [packState, blockNumber]);
@@ -107,31 +108,62 @@ export function PackOpener({
       return;
     }
     myLog("found transaction receipt");
-    const abiInterface = new ethers.Interface(ERC1155_PACK_ABI);
+    const abi1155 = new ethers.Interface(ERC1155_SALE_ITEMS_ABI);
+    const abi721 = new ethers.Interface(ERC721_SALE_ITEMS_ABI);
+    console.log(receipt);
+    const packData: PackData = [];
     for (let i = 0; i < receipt.logs.length; i++) {
       const log = receipt.logs[i];
-      const parsedLog = abiInterface.parseLog(log);
-      if (parsedLog?.name === "TransferBatch" && parsedLog?.args) {
+      const parsed1155Log = abi1155.parseLog(log);
+      const parsed721Log = abi721.parseLog(log);
+      console.log(log.address);
+      console.log(parsed1155Log || parsed721Log);
+      const logName = (parsed1155Log || parsed721Log)?.name;
+      if (
+        (logName === "TransferBatch" || logName === "Transfer") &&
+        parsed1155Log?.args
+      ) {
         myLog(`- log ${i} has some items`);
-        const { _to, _ids, _amounts } = parsedLog.args;
+        const { _to, _ids, _amounts } = parsed1155Log.args;
         if (_to === address) {
           myLog("  - that belong to me");
-
-          const tokenIds: string[] = _ids.map((id: bigint) => id.toString());
-          const amounts: number[] = _amounts.map((amount: bigint) =>
-            Number(amount),
-          );
-
-          const result = { tokenIds, amounts };
-          setPackData(result);
-          myLog(JSON.stringify(result));
-          setPackState("success");
+          for (let i = 0; i < _ids.length; i++) {
+            packData.push({
+              contract: log.address,
+              tokenId: _ids[i],
+              amount: _amounts[i],
+              type: "erc1155",
+            });
+          }
+        } else {
+          myLog("  - that belong to someone else");
+        }
+      } else if (
+        (logName === "TransferBatch" || logName === "Transfer") &&
+        parsed721Log?.args
+      ) {
+        myLog(`- log ${i} has some items`);
+        const { to, tokenId } = parsed721Log.args;
+        if (to === address) {
+          myLog("  - that belong to me");
+          packData.push({
+            contract: log.address,
+            tokenId,
+            amount: 1,
+            type: "erc721",
+          });
         } else {
           myLog("  - that belong to someone else");
         }
       } else {
-        myLog(`- log ${i} (${parsedLog?.name}) does not have items`);
+        myLog(
+          `- log ${i} (${parsed1155Log?.name}) (${parsed721Log?.name}) does not have items`,
+        );
       }
+    }
+    if (packData.length > 0) {
+      setPackData(packData);
+      setPackState("success");
     }
   }, [receipt]);
 
@@ -153,7 +185,7 @@ export function PackOpener({
     enabled:
       packState === "commiting" ||
       packState === "revealing" ||
-      packState === "receiving", //this seems not to disable
+      packState === "receiving",
     onError() {
       setRevealHash(undefined);
     },

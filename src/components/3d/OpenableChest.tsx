@@ -78,9 +78,9 @@ export default function OpenableChest(props: {
 
   const packTokens: string[] = [];
   if (packData && packState === "success" && showPrizes) {
-    for (let i = 0; i < packData.tokenIds.length; i++) {
-      for (let j = 0; j < packData.amounts[i]; j++) {
-        packTokens.push(packData.tokenIds[i]);
+    for (let i = 0; i < packData.length; i++) {
+      for (let j = 0; j < packData[i].amount; j++) {
+        packTokens.push(packData[i].tokenId);
       }
     }
   }
