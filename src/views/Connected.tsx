@@ -20,7 +20,7 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
 
   const packsRemaining = packCollectionBalanceData
     ? parseInt(
-        packCollectionBalanceData?.find((v) => v.tokenID === "1")?.balance ||
+        packCollectionBalanceData?.find((v) => v.tokenID === "4")?.balance ||
           "0",
       )
     : -1;

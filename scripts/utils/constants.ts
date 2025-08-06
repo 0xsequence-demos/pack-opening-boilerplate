@@ -6,3 +6,4 @@ export const collectionId = Number(process.env.VITE_COLLECTION_ID);
 export const jwtAccessKey = process.env.JWT_ACCESS_KEY;
 export const projectAccessKey = process.env.VITE_PROJECT_ACCESS_KEY;
 export const tokenContractAddress = process.env.VITE_ITEMS_CONTRACT_ADDRESS;
+export const tokenContract2Address = process.env.VITE_ITEMS_CONTRACT2_ADDRESS;

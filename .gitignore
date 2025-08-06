@@ -12,7 +12,10 @@ dist
 dist-ssr
 *.local
 .env
+.env.dev
+.env.prod
 wrangler.toml
+wrangler.dev.toml
 wrangler.json
 .wrangler
 

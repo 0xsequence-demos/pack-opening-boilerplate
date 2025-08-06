@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAccount, useSignMessage } from "wagmi";
 import { Button } from "@0xsequence-demos/boilerplate-design-system";
 
-const numPerMint = 50;
+const numPerMint = 5;
 
 export default function MintPacks(props: {
   refetchPackCollection: () => void;
