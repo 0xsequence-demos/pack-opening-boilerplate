@@ -8,8 +8,8 @@ import { TokenBalance } from "@0xsequence/indexer";
 
 export default function ExtraInfo(props: {
   itemsCollectionBalanceData: TokenBalance[] | undefined;
+  itemsCollection2BalanceData: TokenBalance[] | undefined;
   itemCollectionBalanceIsLoading: boolean;
-  refetchItemsCollectionBalance: () => void;
   userAddress: `0x${string}`;
   chainId: ChainId;
 }) {
@@ -18,7 +18,7 @@ export default function ExtraInfo(props: {
     chainId,
     itemCollectionBalanceIsLoading,
     itemsCollectionBalanceData,
-    refetchItemsCollectionBalance,
+    itemsCollection2BalanceData,
   } = props;
   const addressListData: Array<[string, string]> = [];
   if (userAddress) {
@@ -37,8 +37,8 @@ export default function ExtraInfo(props: {
       <UserInventory
         title={"Demo Items"}
         itemsCollectionBalanceData={itemsCollectionBalanceData}
+        itemsCollection2BalanceData={itemsCollection2BalanceData}
         itemCollectionBalanceIsLoading={itemCollectionBalanceIsLoading}
-        refetchItemsCollectionBalance={refetchItemsCollectionBalance}
       />
       {chainId && (
         <Card

@@ -79,21 +79,22 @@ export const onRequest: PagesFunction<IEnv> = async (ctx) => {
   const dataRaw = [address, tokenId, amount, "0x00"];
   const contractAddress = ctx.env.PACK_CONTRACT_ADDRESS;
 
-  const relayerUrl = `https://${ctx.env.CHAIN_HANDLE}-relayer.sequence.app`;
+  const relayerUrl = `https://dev-${ctx.env.CHAIN_HANDLE}-relayer.sequence.app`;
   console.log(relayerUrl);
 
   console.log(contractAddress);
+  const rpcUrl = network.rpcUrl.replace("https://", "https://dev-");
 
   // instantiate settings
   const settings: Partial<SessionSettings> = {
     networks: [
       {
         ...networks[network.chainId],
-        rpcUrl: network.rpcUrl,
+        rpcUrl: rpcUrl,
         relayer: {
           url: relayerUrl,
           provider: {
-            url: network.rpcUrl,
+            url: rpcUrl,
           },
         },
       },

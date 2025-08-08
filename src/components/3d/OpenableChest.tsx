@@ -5,8 +5,14 @@ import { TokenMetadata } from "@0xsequence/indexer";
 import { ChestAnimationState } from "../../helpers/chestAnimationStates";
 import { ChestState } from "../../helpers/chestStates";
 import { PackOpeningState } from "../../helpers/packOpeningStates";
-import { PackData } from "../../helpers/PackData";
+import { PackData, PackDataItem } from "../../helpers/PackData";
 import { PackOpener } from "../PackOpener";
+import { useGetTokenMetadata } from "@0xsequence/hooks";
+import {
+  initialChainId,
+  itemsContract2Address,
+  itemsContractAddress,
+} from "../../configs/chains";
 
 export default function OpenableChest(props: {
   id: number;
@@ -16,8 +22,7 @@ export default function OpenableChest(props: {
   userAddress: `0x${string}`;
   openInitiated: boolean;
   showPrizes: boolean;
-  packMetadatas?: TokenMetadata[];
-  itemMetadatas?: TokenMetadata[];
+  packMetadata: TokenMetadata;
   animOverride?: ChestAnimationState;
   refetchPackCollectionBalance: () => void;
   setChestState: Dispatch<SetStateAction<ChestState>>;
@@ -26,8 +31,7 @@ export default function OpenableChest(props: {
     id,
     userAddress,
     openInitiated,
-    itemMetadatas,
-    packMetadatas,
+    packMetadata,
     animOverride,
     refetchPackCollectionBalance,
     showPrizes,
@@ -70,20 +74,36 @@ export default function OpenableChest(props: {
     }
   }, [packData]);
 
-  const packChestTokenMetadata = packMetadatas?.find(
-    (item) => item.tokenId === "1",
-  );
+  const chestGltfUri = packMetadata.animation_url;
 
-  const chestGltfUri = packChestTokenMetadata?.animation_url;
-
-  const packTokens: string[] = [];
+  const packItems: PackDataItem[] = [];
   if (packData && packState === "success" && showPrizes) {
     for (let i = 0; i < packData.length; i++) {
       for (let j = 0; j < packData[i].amount; j++) {
-        packTokens.push(packData[i].tokenId);
+        packItems.push(packData[i]);
       }
     }
   }
+
+  const tokenIds1 =
+    packData
+      ?.filter((v) => v.contract === itemsContractAddress)
+      .map((v) => v.tokenId.toString()) || [];
+  const tokenIds2 =
+    packData
+      ?.filter((v) => v.contract === itemsContract2Address)
+      .map((v) => v.tokenId.toString()) || [];
+
+  const { data: itemMetadatas } = useGetTokenMetadata({
+    chainID: String(initialChainId),
+    contractAddress: itemsContractAddress,
+    tokenIDs: tokenIds1,
+  });
+  const { data: item2Metadatas } = useGetTokenMetadata({
+    chainID: String(initialChainId),
+    contractAddress: itemsContract2Address,
+    tokenIDs: tokenIds2,
+  });
 
   const [away, setAway] = useState(false);
   useEffect(() => {
@@ -101,13 +121,14 @@ export default function OpenableChest(props: {
         packState !== "fail" && (
           <PackOpener
             id={id}
+            packTokenId={packMetadata.tokenId}
             address={userAddress}
             packState={packState}
             setPackState={setPackState}
             setPackData={setPackData}
           />
         )}
-      {packChestTokenMetadata && chestGltfUri ? (
+      {packMetadata && chestGltfUri ? (
         <Chest
           gltfUrl={chestGltfUri}
           x={x}
@@ -143,9 +164,20 @@ export default function OpenableChest(props: {
         />
       ) : null}
       {itemMetadatas &&
-        packTokens
-          .map((id, i) => {
-            const v = itemMetadatas.find((v) => v.tokenId === id);
+        item2Metadatas &&
+        packItems
+          .map((packItem, i) => {
+            const v =
+              itemMetadatas.find(
+                (v) =>
+                  packItem.contract === itemsContractAddress &&
+                  v.tokenId === packItem.tokenId.toString(),
+              ) ||
+              item2Metadatas.find(
+                (v) =>
+                  packItem.contract === itemsContract2Address &&
+                  v.tokenId === packItem.tokenId.toString(),
+              );
 
             let x = 0;
             let y = 0;

@@ -28,12 +28,12 @@ export default function App() {
     signIn: {
       projectName: "Pack Opening Boilerplate",
     },
-    env: {
-      indexerGatewayUrl: "https://dev-indexer.sequence.app",
-      metadataUrl: "https://dev-metadata.sequence.app",
-      apiUrl: "https://dev-api.sequence.app",
-      indexerUrl: "https://dev-indexer.sequence.app",
-    },
+    // env: {
+    //   indexerGatewayUrl: "https://dev-indexer.sequence.app",
+    //   metadataUrl: "https://dev-metadata.sequence.app",
+    //   apiUrl: "https://dev-api.sequence.app",
+    //   indexerUrl: "https://dev-indexer.sequence.app",
+    // },
   };
 
   const kitConfig = createConfig("waas", {
