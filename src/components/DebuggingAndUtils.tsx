@@ -1,12 +1,16 @@
 import { Spinner, Switch } from "@0xsequence/design-system";
-import { Button, Card } from "@0xsequence-demos/boilerplate-design-system";
+import {
+  Button,
+  Card,
+  Select,
+} from "@0xsequence-demos/boilerplate-design-system";
 import { PackOpener } from "./PackOpener";
-import MintPacks from "./MintPacks";
+// import MintPacks from "./MintPacks";
 import BurnItems from "./BurnItems";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { PackOpeningState } from "../helpers/packOpeningStates";
 import { PackData } from "../helpers/PackData";
-import { TokenBalance } from "@0xsequence/indexer";
+import { TokenBalance, TokenMetadata } from "@0xsequence/indexer";
 import {
   ChestAnimationState,
   chestAnimationStates,
@@ -14,13 +18,14 @@ import {
 import { useRef } from "react";
 
 export default function DebuggingAndUtils(props: {
-  packsRemaining: number;
+  packsRemaining: TokenBalance[] | undefined;
   userAddress: `0x${string}`;
   refetchItemsCollectionBalance: () => void;
   refetchPackCollectionBalance: () => void;
   itemsCollectionBalanceData: TokenBalance[] | undefined;
   animOverride?: ChestAnimationState;
   setAnimOverride: Dispatch<SetStateAction<ChestAnimationState | undefined>>;
+  packMetadatas: TokenMetadata[] | undefined;
 }) {
   const {
     packsRemaining,
@@ -30,6 +35,7 @@ export default function DebuggingAndUtils(props: {
     userAddress,
     animOverride,
     setAnimOverride,
+    packMetadatas,
   } = props;
 
   const packsRemainingRef = useRef(packsRemaining);
@@ -74,17 +80,20 @@ export default function DebuggingAndUtils(props: {
       refetchItemsCollectionBalance();
       refetchPackCollectionBalance();
       setDebugPackState("idle");
-      openAnother = autoOpen && packsRemaining > 0;
+      openAnother = autoOpen;
+      // openAnother = autoOpen && packsRemaining > 0;
     } else if (debugPackState === "commiting") {
       setDebugPackData(undefined);
     } else if (debugPackState === "idle") {
-      openAnother = autoOpen && packsRemaining > 0;
+      openAnother = autoOpen;
+      // openAnother = autoOpen && packsRemaining > 0;
     }
     if (openAnother) {
       setTimeout(() => {
         if (
-          debugPackStateRef.current === "idle" &&
-          packsRemainingRef.current > 0
+          debugPackStateRef.current === "idle"
+          // debugPackStateRef.current === "idle" &&
+          // packsRemainingRef.current > 0
         ) {
           setDebugPackState("startingOpeningProcess");
         }
@@ -97,6 +106,12 @@ export default function DebuggingAndUtils(props: {
     0,
   );
 
+  const [packTokenId, setPackTokenId] = useState("0");
+
+  const packBalance = parseInt(
+    packsRemaining?.find((tb) => tb.tokenID! === packTokenId)?.balance || "0",
+  );
+
   return (
     <>
       <b>Testing & Debugging:</b>
@@ -106,39 +121,49 @@ export default function DebuggingAndUtils(props: {
           title="Headless Pack Opening"
           className="border-t border-white/10 rounded-none bg-transparent"
         >
-          {packsRemaining === -1 ? (
+          {!packsRemaining || !packMetadatas ? (
             <div>Loading your packs...</div>
           ) : (
-            <div>
-              You have {packsRemaining} pack{packsRemaining === 1 ? "" : "s"}
-            </div>
-          )}
-
-          <Switch
-            label="Auto-Open"
-            checked={autoOpen}
-            onCheckedChange={setAutoOpen}
-          />
-          {packsRemaining !== undefined &&
-          packsRemaining > 0 &&
-          !autoOpen &&
-          (debugPackState === "idle" || debugPackState === "fail") ? (
-            <Button
-              variant="primary"
-              onClick={() => {
-                setDebugPackState("startingOpeningProcess");
-              }}
-            >
-              {`${debugPackState === "fail" ? "Retry Opening Pack" : "Open Pack"} ${currentDebugPackId}`}
-            </Button>
-          ) : (
-            <div style={{ display: "flex" }}>
-              <Spinner size={"md"} />
-              <div className="px-4">
-                Pack {currentDebugPackId}: {debugPackState}
+            <>
+              <Select
+                defaultValue={packTokenId}
+                options={packMetadatas.map((v) => {
+                  return { value: v.tokenId, label: `#${v.tokenId} ${v.name}` };
+                })}
+                onValueChange={(opt) => setPackTokenId(opt)}
+              ></Select>
+              <div>
+                You have {packBalance} pack
+                {packBalance === 1 ? "" : "s"}
               </div>
-            </div>
+            </>
           )}
+          <div className="flex justify-between p-2">
+            <Switch
+              label="Auto-Open"
+              checked={autoOpen}
+              onCheckedChange={setAutoOpen}
+            />
+            {packBalance > 0 &&
+              !autoOpen &&
+              (debugPackState === "idle" || debugPackState === "fail" ? (
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    setDebugPackState("startingOpeningProcess");
+                  }}
+                >
+                  {`${debugPackState === "fail" ? "Retry Opening Pack" : "Open Pack"} ${currentDebugPackId}`}
+                </Button>
+              ) : (
+                <div style={{ display: "flex" }}>
+                  <Spinner size={"md"} />
+                  <div className="px-4">
+                    Pack {currentDebugPackId}: {debugPackState}
+                  </div>
+                </div>
+              ))}
+          </div>
           <div className="flex flex-row gap-3">
             {debugPackState !== "idle" &&
               debugPackState !== "success" &&
@@ -146,6 +171,7 @@ export default function DebuggingAndUtils(props: {
                 <PackOpener
                   key={currentDebugPackId}
                   id={currentDebugPackId}
+                  packTokenId={packTokenId}
                   address={userAddress}
                   packState={debugPackState}
                   setPackState={setDebugPackState}
@@ -163,9 +189,9 @@ export default function DebuggingAndUtils(props: {
               ))}
             </>
           )}
-          {packsRemaining === 0 && (
+          {/* {packsRemaining === 0 && (
             <MintPacks refetchPackCollection={refetchPackCollectionBalance} />
-          )}
+          )} */}
           {packPerformanceHistory.length > 0 && (
             <div className="bg-gray-600 scroll-auto h-40 overflow-scroll rounded-md">
               <>

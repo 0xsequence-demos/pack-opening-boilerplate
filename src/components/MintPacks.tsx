@@ -6,8 +6,9 @@ const numPerMint = 5;
 
 export default function MintPacks(props: {
   refetchPackCollection: () => void;
+  tokenId: string;
 }) {
-  const { refetchPackCollection } = props;
+  const { refetchPackCollection, tokenId } = props;
   const { address } = useAccount();
   const {
     isPending: isEncoding,
@@ -42,7 +43,7 @@ export default function MintPacks(props: {
       },
       body: JSON.stringify({
         address,
-        tokenId: "1",
+        tokenId,
         amount: numPerMint,
       }),
     })

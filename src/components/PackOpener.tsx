@@ -25,12 +25,14 @@ export function PackOpener({
   packState,
   setPackState,
   setPackData,
+  packTokenId,
 }: {
   id: number;
   address: `0x${string}`;
   packState: PackOpeningState;
   setPackState: Dispatch<SetStateAction<PackOpeningState>>;
   setPackData: Dispatch<SetStateAction<PackData | undefined>>;
+  packTokenId: string;
 }) {
   const { chainId } = useAccount();
   const [revealHash, setRevealHash] = useState<string>();
@@ -72,7 +74,7 @@ export function PackOpener({
         address: packContractAddress,
         abi: ERC1155_PACK_ABI,
         functionName: "commit",
-        args: [BigInt(4)],
+        args: [BigInt(packTokenId)],
       });
     }
   }, [packState, blockNumber]);

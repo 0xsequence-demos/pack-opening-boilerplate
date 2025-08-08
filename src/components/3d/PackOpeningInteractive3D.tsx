@@ -4,28 +4,25 @@ import OpenableChest from "./OpenableChest";
 import View3D from "./View3D";
 import MintPacks from "../MintPacks";
 import { ChestState } from "../../helpers/chestStates";
-import { useGetTokenMetadata } from "@0xsequence/hooks";
-import {
-  initialChainId,
-  itemsContractAddress,
-  packContractAddress,
-} from "../../configs/chains";
 import { ChestAnimationState } from "../../helpers/chestAnimationStates";
 import { Button } from "@0xsequence-demos/boilerplate-design-system";
+import { TokenMetadata } from "@0xsequence/indexer";
 
 export default function PackOpeningInteractive3D(props: {
   userAddress: `0x${string}`;
+  packMetadata: TokenMetadata;
   packsRemaining: number;
-  refetchItemsCollectionBalance: () => void;
+  refetchItemsCollectionsBalance: () => void;
   refetchPackCollectionBalance: () => void;
   animOverride?: ChestAnimationState;
 }) {
   const {
     packsRemaining,
     userAddress,
-    refetchItemsCollectionBalance,
+    refetchItemsCollectionsBalance,
     refetchPackCollectionBalance,
     animOverride,
+    packMetadata,
   } = props;
 
   const [openChestInitiated, setOpenChestInitiated] = useState(false);
@@ -35,39 +32,12 @@ export default function PackOpeningInteractive3D(props: {
   const [chestSuccessCount, setChestSuccessCount] = useState(0);
   useEffect(() => {
     if (focusedChestState === "opened") {
-      refetchItemsCollectionBalance();
+      refetchItemsCollectionsBalance();
       setTimeout(() => {
         setChestSuccessCount(chestSuccessCount + 1);
       }, 5000);
     }
   }, [focusedChestState]);
-
-  const { data: itemMetadatas } = useGetTokenMetadata({
-    chainID: String(initialChainId),
-    contractAddress: itemsContractAddress,
-    tokenIDs: [
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-      "11",
-      "12",
-      "13",
-      "14",
-    ],
-  });
-
-  const { data: packMetadatas } = useGetTokenMetadata({
-    chainID: String(initialChainId),
-    contractAddress: packContractAddress,
-    tokenIDs: ["1"],
-  });
 
   return (
     <div className="relative">
@@ -97,8 +67,7 @@ export default function PackOpeningInteractive3D(props: {
                 openInitiated={i === 1 && openChestInitiated}
                 refetchPackCollectionBalance={refetchPackCollectionBalance}
                 setChestState={setFocusedChestState}
-                itemMetadatas={itemMetadatas}
-                packMetadatas={packMetadatas}
+                packMetadata={packMetadata}
                 animOverride={animOverride}
               />
             );
@@ -132,6 +101,7 @@ export default function PackOpeningInteractive3D(props: {
         <div className="absolute inset-0 flex items-center justify-center">
           <MintPacks
             refetchPackCollection={() => refetchPackCollectionBalance()}
+            tokenId={packMetadata.tokenId}
           />
         </div>
       )}

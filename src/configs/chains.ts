@@ -18,3 +18,6 @@ export const packContractAddress = import.meta.env
 
 export const itemsContractAddress = import.meta.env
   .VITE_ITEMS_CONTRACT_ADDRESS as `0x${string}`;
+
+export const itemsContract2Address = import.meta.env
+  .VITE_ITEMS_CONTRACT2_ADDRESS as `0x${string}`;
