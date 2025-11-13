@@ -65,8 +65,8 @@ async function main() {
   ]);
   const csvRows = csvValues.map((v) => v.join(","));
   const data = [
-    // "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts,Item 2 Token Addr,Item 2 Token IDs,Item 2 Amounts",
-    "Pack ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts",
+    // "Pack Content ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts,Item 2 Token Addr,Item 2 Token IDs,Item 2 Amounts",
+    "Pack Content ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts",
   ]
     .concat(csvRows)
     .join("\n");
