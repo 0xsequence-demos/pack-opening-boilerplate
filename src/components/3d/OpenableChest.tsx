@@ -87,11 +87,15 @@ export default function OpenableChest(props: {
 
   const tokenIds1 =
     packData
-      ?.filter((v) => v.contract === itemsContractAddress)
+      ?.filter(
+        (v) => v.contract.toLowerCase() === itemsContractAddress.toLowerCase(),
+      )
       .map((v) => v.tokenId.toString()) || [];
   const tokenIds2 =
     packData
-      ?.filter((v) => v.contract === itemsContract2Address)
+      ?.filter(
+        (v) => v.contract.toLowerCase() === itemsContract2Address.toLowerCase(),
+      )
       .map((v) => v.tokenId.toString()) || [];
 
   const { data: itemMetadatas } = useGetTokenMetadata({
@@ -170,12 +174,14 @@ export default function OpenableChest(props: {
             const v =
               itemMetadatas.find(
                 (v) =>
-                  packItem.contract === itemsContractAddress &&
+                  packItem.contract.toLowerCase() ===
+                    itemsContractAddress.toLowerCase() &&
                   v.tokenId === packItem.tokenId.toString(),
               ) ||
               item2Metadatas.find(
                 (v) =>
-                  packItem.contract === itemsContract2Address &&
+                  packItem.contract.toLowerCase() ===
+                    itemsContract2Address.toLowerCase() &&
                   v.tokenId === packItem.tokenId.toString(),
               );
 
