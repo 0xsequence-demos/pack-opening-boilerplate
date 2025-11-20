@@ -52,10 +52,12 @@ Follow this guide in order to deploy a collectible contract as well as upload th
 Create a CSV with the list of possible contents that will be randomly selected when a Pack is opened. The table should have the following format:
 
 ```csv
-Lootbox ID,Item 1 Token Addr,Item 1 Token IDs,Item 1 Amounts,Item 2 Token Addr,Item 2 Token IDs,Item 2 Amounts
-1,0x0e799553da6fff56a501923006896ed99a55658c,"1,2","5,10",0x8b2020feeed9f75b23b07cb8eb36f127479c1fea,4,5
-2,0x8b2020feeed9f75b23b07cb8eb36f127479c1fea,5,2,,,
-3,0x0e799553da6fff56a501923006896ed99a55658c,3,3,,,
+Pack Content ID, Item 1 Token Addr, Item 1 Token Type, Item 1 Token IDs, Item 1 Amounts, Item 2 Token Addr, Item 2 Token Type, Item 2 Token IDs, Item 2 Amounts
+1,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1200","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"5,6","7,3"
+2,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1201","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9,10","7,9"
+3,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1202","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"7,8","4,8"
+4,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1203","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9","7"
+5,0x3a6a8f4091b705fe1241c47e2532d45a6dff5a85,721,"1204","1",0xa558419686308ce836c36a5c44eeeb4b0916ca7b,1155,"9,10","5,4"
 ```
 
 We have an example csv file that you can edit located `generated-packs.csv`.
