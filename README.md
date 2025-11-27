@@ -4,6 +4,8 @@ This repository walks through how to set up and deploy the contracts for launchi
 
 Each pack is an ERC1155 item that can be purchased through a primary sale contract and transferred between wallets. When a user wants to obtain the pack's contents, they must call the contract's `commit` function, which burns the pack, and after some time, they receive a random reward according to the distribution by the developer. This can be also used to create bundles containing multiple NFT items in a deterministic fashion by ensuring an equal distribution across all packs.
 
+For a deeper dive into packs, see the Sequence docs: https://docs.sequence.xyz/guides/packs
+
 ## Quickstart
 
 Use pnpm to install dependencies:
@@ -30,6 +32,16 @@ To provide your own keys from [Sequence Builder](https://sequence.build/), simpl
 
 To see the chains supported by sequence [click here](https://status.sequence.info)
 
+## Playwright E2E tests
+
+- Install deps: `pnpm install`
+- Seed the persistent browser profile once: `pnpm test:init` (this launches the app and opens Playwright codegen so you can sign in; the session is stored in `playwright/.user-data/chromium`).
+- Run the suite: `pnpm test:e2e`
+- View reports: `pnpm test:e2e:report`
+
+Notes:
+- Tests use a persistent Chromium profile; make sure you’ve logged in via `pnpm test:init` so IndexedDB/localStorage contain your session.
+- Connected tests expect a funded wallet with packs on the target chain; failing transactions will surface as “Transaction creation failed” in console logs.
 
 # Deploying your own Packs in Sequence Builder
 
@@ -117,4 +129,3 @@ In production, you'll likely want to use a couple methodologies to distribute Pa
 - Or, use a sale contract to allow users to purchase Packs.
 
 Make sure the Pack contract and all collection contracts are correctly configured and permissions are in place before distribution. We also recommend to include an pack opening animation during the commit -> reveal() phase while the RNG processes.
-

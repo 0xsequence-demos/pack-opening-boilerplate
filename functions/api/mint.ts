@@ -82,7 +82,7 @@ export const onRequest: PagesFunction<IEnv> = async (ctx) => {
   const relayerUrl = `https://${ctx.env.CHAIN_HANDLE}-relayer.sequence.app`;
   console.log(relayerUrl);
 
-  console.log(contractAddress);
+  console.log("contract: " + contractAddress);
   const rpcUrl = network.rpcUrl;
 
   // instantiate settings
@@ -110,7 +110,7 @@ export const onRequest: PagesFunction<IEnv> = async (ctx) => {
 
   // get signer
   const signer = session.account.getSigner(network.chainId);
-  console.log(signer.account.address);
+  console.log("signer: " + signer.account.address);
   // create interface from partial abi
   const collectibleInterface = new ethers.Interface([
     "function mint(address to, uint256 tokenId, uint256 amount, bytes data)",

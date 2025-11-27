@@ -48,7 +48,7 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
   const { data: packMetadatas } = useGetTokenMetadata({
     chainID: String(initialChainId),
     contractAddress: packContractAddress,
-    tokenIDs: ["0", "1", "2"],
+    tokenIDs: ["1", "2", "3"],
   });
 
   const [activePackId, setActivePackId] = useState<string | undefined>(
@@ -65,10 +65,13 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
         (activePackId !== undefined && activePackMetadata ? (
           <div>
             <div className="flex justify-between p-2 text-24">
-              <div>#{activePackId}</div>
-              <div className="font-bold">{activePackMetadata.name}</div>
+              <div data-testid="pack-header">#{activePackId}</div>
+              <div className="font-bold" data-testid="pack-name">
+                {activePackMetadata.name}
+              </div>
               <Button
                 variant="primary"
+                data-testid="back-to-packs"
                 onClick={() => setActivePackId(undefined)}
               >
                 Back to Packs
@@ -91,13 +94,15 @@ const Connected = (props: { userAddress: Address; chainId: number }) => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4" data-testid="pack-grid">
             {packMetadatas?.map((tokenData) => {
               return (
                 <div
                   key={tokenData.tokenId}
                   className={`aspect-square relative cursor-pointer`}
                   onClick={() => setActivePackId(tokenData.tokenId)}
+                  data-testid={`pack-card-${tokenData.tokenId}`}
+                  aria-label={`Pack ${tokenData.tokenId}`}
                 >
                   <div
                     className={`w-full h-full rounded-lg bg-white opacity-10 bg-[url(${tokenData.image})] bg-cover bg-center absolute`}

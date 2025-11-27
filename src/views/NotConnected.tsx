@@ -11,6 +11,8 @@ export default function NotConnected() {
         subvariants={{ padding: "comfortable" }}
         onClick={() => setOpenConnectModal(true)}
         className="px-8"
+        data-testid="connect-button"
+        aria-label="Connect wallet"
       >
         Connect
       </Button>

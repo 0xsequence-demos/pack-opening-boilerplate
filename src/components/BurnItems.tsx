@@ -34,9 +34,10 @@ export default function BurnItems(props: {
     <Button
       variant="primary"
       className="purchase"
-      style={{
-        background:
-          burnState === "idle"
+       data-testid="burn-items"
+       style={{
+         background:
+           burnState === "idle"
             ? "linear-gradient(89.69deg, #e62265 0.27%, #910020 99.73%)"
             : "linear-gradient(89.69deg, #777777 0.27%, #555555 99.73%)",
       }}

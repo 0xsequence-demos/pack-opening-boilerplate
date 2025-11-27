@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ItemViewer3D from "./ItemViewer3D";
 import OpenableChest from "./OpenableChest";
 import View3D from "./View3D";
@@ -7,6 +7,7 @@ import { ChestState } from "../../helpers/chestStates";
 import { ChestAnimationState } from "../../helpers/chestAnimationStates";
 import { Button } from "@0xsequence-demos/boilerplate-design-system";
 import { TokenMetadata } from "@0xsequence/indexer";
+import { PackData } from "../../helpers/PackData";
 
 export default function PackOpeningInteractive3D(props: {
   userAddress: `0x${string}`;
@@ -30,6 +31,14 @@ export default function PackOpeningInteractive3D(props: {
     useState<ChestState>("idle");
 
   const [chestSuccessCount, setChestSuccessCount] = useState(0);
+  const [lastOpenedPack, setLastOpenedPack] = useState<PackData | undefined>();
+
+  useEffect(() => {
+    if (lastOpenedPack) {
+      console.log("Pack opened with items:", lastOpenedPack);
+    }
+  }, [lastOpenedPack]);
+
   useEffect(() => {
     if (focusedChestState === "opened") {
       refetchItemsCollectionsBalance();
@@ -55,6 +64,12 @@ export default function PackOpeningInteractive3D(props: {
               return null;
             }
             const j = i + chestSuccessCount;
+
+            const openInitiated = i === 1 && openChestInitiated;
+            if (openInitiated) {
+              console.log("Setting openChestInitiated to false after opening");
+              setTimeout(() => setOpenChestInitiated(false), 2000);
+            }
             return (
               <OpenableChest
                 key={j}
@@ -64,11 +79,12 @@ export default function PackOpeningInteractive3D(props: {
                 z={-2}
                 userAddress={userAddress}
                 showPrizes={i === 1}
-                openInitiated={i === 1 && openChestInitiated}
+                openInitiated={openInitiated}
                 refetchPackCollectionBalance={refetchPackCollectionBalance}
                 setChestState={setFocusedChestState}
                 packMetadata={packMetadata}
                 animOverride={animOverride}
+                onPackOpened={setLastOpenedPack}
               />
             );
           })}
@@ -83,9 +99,11 @@ export default function PackOpeningInteractive3D(props: {
                 <Button
                   variant="primary"
                   onClick={() => {
+                    console.log("Button clicked: Open Pack");
+                    console.log("packsRemaining:", packsRemaining);
                     setOpenChestInitiated(true);
-                    setTimeout(() => setOpenChestInitiated(false), 100);
                   }}
+                  data-testid="open-pack-3d"
                 >
                   {focusedChestState === "failed"
                     ? "Retry Opening Pack"
@@ -104,6 +122,32 @@ export default function PackOpeningInteractive3D(props: {
             tokenId={packMetadata.tokenId}
           />
         </div>
+      )}
+      {useMemo(
+        () =>
+          lastOpenedPack && lastOpenedPack.length > 0 ? (
+            <div
+              data-testid="pack-opened-items"
+              style={{
+                position: "fixed",
+                inset: 0,
+                opacity: 0,
+                pointerEvents: "none",
+                visibility: "hidden",
+              }}
+              aria-hidden="true"
+            >
+              {lastOpenedPack.map((item, idx) => (
+                <span
+                  key={`${item.contract}-${item.tokenId.toString()}-${idx}`}
+                  data-testid="pack-opened-item"
+                >
+                  {item.contract}:{item.tokenId.toString()}:{item.type}
+                </span>
+              ))}
+            </div>
+          ) : null,
+        [lastOpenedPack],
       )}
     </div>
   );

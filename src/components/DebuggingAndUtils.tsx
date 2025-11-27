@@ -115,11 +115,15 @@ export default function DebuggingAndUtils(props: {
   return (
     <>
       <b>Testing & Debugging:</b>
-      <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
+      <Card
+        className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0"
+        data-testid="debug-utils"
+      >
         <Card
           collapsable
           title="Headless Pack Opening"
           className="border-t border-white/10 rounded-none bg-transparent"
+          data-testid="headless-pack-opening"
         >
           {!packsRemaining || !packMetadatas ? (
             <div>Loading your packs...</div>
@@ -131,6 +135,7 @@ export default function DebuggingAndUtils(props: {
                   return { value: v.tokenId, label: `#${v.tokenId} ${v.name}` };
                 })}
                 onValueChange={(opt) => setPackTokenId(opt)}
+                data-testid="pack-selector"
               ></Select>
               <div>
                 You have {packBalance} pack
@@ -143,12 +148,14 @@ export default function DebuggingAndUtils(props: {
               label="Auto-Open"
               checked={autoOpen}
               onCheckedChange={setAutoOpen}
+              data-testid="auto-open-toggle"
             />
             {packBalance > 0 &&
               !autoOpen &&
               (debugPackState === "idle" || debugPackState === "fail" ? (
                 <Button
                   variant="primary"
+                  data-testid="open-pack"
                   onClick={() => {
                     setDebugPackState("startingOpeningProcess");
                   }}
@@ -223,6 +230,7 @@ export default function DebuggingAndUtils(props: {
           collapsable
           title="Item Utils"
           className="border-t border-white/10 rounded-none bg-transparent"
+          data-testid="item-utils"
         >
           <BurnItems
             refetchItemsCollection={refetchItemsCollectionBalance}
@@ -234,6 +242,7 @@ export default function DebuggingAndUtils(props: {
           collapsable
           title="Animation State"
           className="border-t border-white/10 rounded-none bg-transparent"
+          data-testid="animation-state"
         >
           <div className="flex flex-row gap-3">
             {chestAnimationStates.map((i) => {
@@ -244,6 +253,9 @@ export default function DebuggingAndUtils(props: {
                     setAnimOverride(i === animOverride ? undefined : i)
                   }
                   className={`stroke-20 stroke-amber-50 inline-block m-1 p-3 rounded-2xl font-bold ${i === animOverride ? "bg-purple-500" : "bg-purple-800"}`}
+                  data-testid={`animation-state-${i}`}
+                  role="button"
+                  aria-pressed={i === animOverride}
                 >
                   {i}
                 </div>

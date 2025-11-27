@@ -69,6 +69,15 @@ export function PackOpener({
   useEffect(() => {
     if (packState === "startingOpeningProcess" && blockNumber !== undefined) {
       setPackState("commiting");
+      console.log(
+        chainId,
+        "address:",
+        packContractAddress,
+        "functionName:",
+        "commit",
+        "args:",
+        [BigInt(packTokenId)],
+      );
       writeContract({
         chainId,
         address: packContractAddress,
@@ -116,8 +125,20 @@ export function PackOpener({
     const packData: PackData = [];
     for (let i = 0; i < receipt.logs.length; i++) {
       const log = receipt.logs[i];
-      const parsed1155Log = abi1155.parseLog(log);
-      const parsed721Log = abi721.parseLog(log);
+      const parsed1155Log = (() => {
+        try {
+          return abi1155.parseLog(log);
+        } catch {
+          return undefined;
+        }
+      })();
+      const parsed721Log = (() => {
+        try {
+          return abi721.parseLog(log);
+        } catch {
+          return undefined;
+        }
+      })();
       console.log(log.address);
       console.log(parsed1155Log || parsed721Log);
       const logName = (parsed1155Log || parsed721Log)?.name;
@@ -147,7 +168,7 @@ export function PackOpener({
         myLog(`- log ${i} has some items`);
         const { to, tokenId } = parsed721Log.args;
         if (to === address) {
-          myLog("  - that belong to me");
+          myLog(`  - that belong to me:  ${log.address} #${tokenId}`);
           packData.push({
             contract: log.address,
             tokenId,
@@ -166,6 +187,9 @@ export function PackOpener({
     if (packData.length > 0) {
       setPackData(packData);
       setPackState("success");
+    } else {
+      myLog("No items detected in receipt logs");
+      setPackState("fail");
     }
   }, [receipt]);
 
@@ -189,6 +213,7 @@ export function PackOpener({
       packState === "revealing" ||
       packState === "receiving",
     onError() {
+      // Ignore errors from filter-unsupported nodes; we'll continue waiting for logs.
       setRevealHash(undefined);
     },
     onLogs(logs) {

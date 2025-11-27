@@ -33,7 +33,10 @@ export default function ExtraInfo(props: {
     : undefined;
 
   return (
-    <Card className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0">
+    <Card
+      className="flex flex-col gap-5 bg-white/10 border border-white/10 backdrop-blur-sm text-center p-0"
+      data-testid="extra-info"
+    >
       <UserInventory
         title={"Demo Items"}
         itemsCollectionBalanceData={itemsCollectionBalanceData}

@@ -26,6 +26,7 @@ export default function OpenableChest(props: {
   animOverride?: ChestAnimationState;
   refetchPackCollectionBalance: () => void;
   setChestState: Dispatch<SetStateAction<ChestState>>;
+  onPackOpened?: (data: PackData) => void;
 }) {
   const {
     id,
@@ -39,10 +40,12 @@ export default function OpenableChest(props: {
     x,
     y,
     z,
+    onPackOpened,
   } = props;
 
   const [packState, setPackState] = useState<PackOpeningState>("idle");
   useEffect(() => {
+    console.log(`openInitiated: ${openInitiated}, Pack state: ${packState}`);
     if (openInitiated && (packState === "idle" || packState === "fail")) {
       setPackState("startingOpeningProcess");
     }
@@ -71,6 +74,7 @@ export default function OpenableChest(props: {
   useEffect(() => {
     if (packData) {
       refetchPackCollectionBalance();
+      onPackOpened?.(packData);
     }
   }, [packData]);
 
