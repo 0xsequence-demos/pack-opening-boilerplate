@@ -74,6 +74,7 @@ export default function MintPacks(props: {
       onClick={requestMint}
       type="button"
       disabled={isBusy}
+      data-testid="mint-packs"
     >
       {isBusy ? `Please wait...` : `Mint ${numPerMint} Packs`}
     </Button>

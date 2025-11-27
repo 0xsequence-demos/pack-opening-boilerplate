@@ -14,6 +14,10 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
+    "test:init": "sh -c 'set -e; PORT=${PORT:-4444}; HOST=${HOST:-localhost}; USER_DATA_DIR=${USER_DATA_DIR:-playwright/.user-data/chromium}; mkdir -p \"$USER_DATA_DIR\"; PORT=$PORT HOST=$HOST pnpm dev:vite -- --host $HOST --port $PORT >/tmp/playwright-init-vite.log 2>&1 & VITE_PID=$!; cleanup(){ kill $VITE_PID >/dev/null 2>&1 || true; }; trap cleanup EXIT INT TERM; i=0; while [ $i -lt 30 ]; do if curl -s http://$HOST:$PORT >/dev/null 2>&1; then break; fi; i=$((i+1)); sleep 1; done; PLAYWRIGHT_PORT=$PORT PLAYWRIGHT_HOST=$HOST playwright codegen http://$HOST:$PORT/ --user-data-dir=\"$USER_DATA_DIR\"'",
     "preview": "vite preview",
     "postinstall": "(cp -n .env.example .env) || echo already exists"
   },
@@ -39,12 +43,13 @@
     "react-dom": "^19.1.1",
     "sonner": "^2.0.7",
     "three": "^0.179.1",
-    "viem": "^2.33.3",
-    "wagmi": "^2.16.2"
+    "viem": "^2.40.3",
+    "wagmi": "^2.19.5"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250810.0",
     "@eslint/js": "^9.33.0",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/vite": "^4.1.11",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
