@@ -22,7 +22,7 @@ export const test = base.extend({
     fs.mkdirSync(userDataDir, { recursive: true });
 
     // storageState is ignored for persistent contexts; the on-disk profile is the source of truth.
-    const { storageState: _ignored, ...restContextOptions } = contextOptions;
+    const { ...restContextOptions } = contextOptions;
 
     const browserType = playwright[browserName];
     const context = await browserType.launchPersistentContext(userDataDir, {
