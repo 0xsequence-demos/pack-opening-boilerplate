@@ -8,7 +8,16 @@ import reactHooks from "eslint-plugin-react-hooks";
 
 export default [
   {
-    ignores: ["node_modules/", "dist/", "pnpm-lock.yaml", ".wrangler/"],
+    ignores: [
+      "node_modules/",
+      "dist/",
+      "pnpm-lock.yaml",
+      ".wrangler/",
+      "playwright/",
+      "playwright-report/",
+      "test-results/",
+      ".cache/",
+    ],
   },
   {
     files: ["**/*.{js,mjs,cjs,ts,jsx,tsx}"],
@@ -33,6 +42,12 @@ export default [
         },
       },
       globals: globals.browser,
+    },
+  },
+  {
+    files: ["scripts/**/*.{js,mjs,cjs}", "*.config.{js,mjs,cjs,ts}"],
+    languageOptions: {
+      globals: globals.node,
     },
   },
   pluginJs.configs.recommended,
