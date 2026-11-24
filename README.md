@@ -1,3 +1,10 @@
+<!-- archived-repository-notice -->
+> [!WARNING]
+> **This demo is archived and no longer maintained.**
+>
+> It was built against Sequence APIs and SDKs that may have changed or been
+> retired, so it may no longer run. It is kept here for reference only.
+
 # Sequence 1155 Pack Boilerplate
 
 This repository walks through how to set up and deploy the contracts for launching your NFT Packs through Sequence.
